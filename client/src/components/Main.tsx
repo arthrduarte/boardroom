@@ -21,9 +21,9 @@ const members = [
 export default function Main() {
   return (
     <>
-    <div className="flex flex-col items-center">
+    <div className="bg-zinc-900 flex flex-col items-center">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold">The microphone/input comes here</h1>
+        <h1 className="text-3xl font-bold text-white">The microphone/input comes here</h1>
       </div>
         <div className='flex flex-row gap-6 flex-wrap justify-center max-w-7xl'>
           {members.map((member) => (
