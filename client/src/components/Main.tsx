@@ -1,4 +1,5 @@
 import MemberCard from './MemberCard'
+import UserInput from './UserInput'
 
 const members = [
     { name: "Connor Walsh", role: ["Startup Founder","Growth Hacker"], image: "https://newkchtpdvzlvmwyonse.supabase.co/storage/v1/object/public/members-images//Connor_Walsh.png" },
@@ -23,6 +24,7 @@ export default function Main() {
     <>
     <div className="bg-zinc-900 flex flex-col items-center">
       <div className="mb-8">
+        <UserInput />
         <h1 className="text-3xl font-bold text-white">The microphone/input comes here</h1>
       </div>
         <div className='flex flex-row gap-6 flex-wrap justify-center max-w-7xl'>
