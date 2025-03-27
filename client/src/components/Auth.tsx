@@ -1,5 +1,3 @@
-// Used AI to split Auth into two: Sign In and Sign Up
-
 import { useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 
@@ -109,3 +107,5 @@ export default function Auth() {
     </div>
   )
 }
+
+// Used AI to split Auth into two: Sign In and Sign Up
