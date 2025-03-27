@@ -1,9 +1,10 @@
-import Main from "./main.tsx"; //Importe o componente main 
+import React from "react";
+import Main from "./Main"; //Importe o componente main 
 
 function App() {
   return (
     <div>
-      <Main />
+      <Main /> {/* Componente Main sendo renderizado */}
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import React from "react";
 import { useState } from "react"; // Importa o hook useState para gerenciar o estado do input
 
 const Main = () => {
@@ -30,29 +31,30 @@ const Main = () => {
     recognition.onstart = () => console.log("🎤 Gravando...");
 
     interface SpeechRecognitionEvent extends Event {
-    results: SpeechRecognitionResultList;
-  }
+      results: SpeechRecognitionResultList;
+    }
+
     // Quando o reconhecimento de voz obtém um resultado
-    recognition.onresult = (event: SpeechRecognitionEvent) =>{
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
       const transcript = event.results[0][0].transcript; // Extrai o texto reconhecido
       console.log("🗣️ Você disse:", transcript); // Exibe no console o que foi falado
       setInputValue(transcript); // Atualiza o input com o texto falado
     };
 
-  // Se houver um erro durante o reconhecimento, exibe no console
+    // Se houver um erro durante o reconhecimento, exibe no console
     recognition.onerror = (event: any) => {
       console.log("⚠️ Erro:", event.error);
-  };
+    };
 
     recognition.onend = () => {
       console.log("🔴 Parou de gravar.");
+    };
   };
-};
 
   return (
     <div>
       <h1>Meu Formulário</h1>
-      
+
       {/* Formulário com input e botão de envio */}
       <form onSubmit={handleSubmit}>
         <input
