@@ -1,11 +1,14 @@
 import { Request, Response } from 'express';
 import { supabaseAdmin } from '../config/supabase';
 
-export const getAllMembers = (req: Request, res: Response) => {
+export const getAllMembersFromUser = (req: Request, res: Response) => {
   try {
+    const { user_id } = req.params;
+    
     supabaseAdmin
       .from('members')
       .select('*')
+      .eq('user_id', user_id)
       .then(({ data, error }) => {
         if (error) throw error;
         res.status(200).json(data);

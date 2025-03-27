@@ -1,6 +1,6 @@
 import express from 'express';
 import {
-  getAllMembers,
+  getAllMembersFromUser,
   getMemberById,
   createMember,
   updateMember,
@@ -9,7 +9,7 @@ import {
 
 const router = express.Router();
 
-router.get('/', getAllMembers);
+router.get('/user/:user_id', getAllMembersFromUser);
 
 router.get('/:id', getMemberById);
 
