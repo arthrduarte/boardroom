@@ -22,11 +22,8 @@ type UserInfoSchema = z.infer<typeof userInfoSchema>;
 const createHistory = async (req: Request, res: Response) => {
     try {
         const userInfo = userInfoSchema.parse(req.body);
-
         const allMembers = await allMembersFromUser(userInfo.user_id);
-
         const generateResponses = await fetchResponseOfMember(allMembers, userInfo);
-
         const saveAllResponses = await saveAllResponsesOnDatabase(generateResponses);
 
         if (!saveAllResponses) {
@@ -35,12 +32,12 @@ const createHistory = async (req: Request, res: Response) => {
 
         res.status(200).json({ message: 'History created successfully' });
     } catch (error) {
-        console.error('Error fetching members:', error);
-        res.status(500).json({ error: 'Failed to fetch members' });
+        console.error('Error creating history:', error);
+        res.status(500).json({ error: error.message || 'Failed to create history' });
     }
 };
 
-type responseSchema = {
+type ResponseSchema = {
     user_id: string;
     member_id: string;
     user_input: string;
@@ -48,16 +45,15 @@ type responseSchema = {
 }
 
 // Save all responses on the database
-const saveAllResponsesOnDatabase = async (responses: responseSchema[]) => {
+const saveAllResponsesOnDatabase = async (responses: ResponseSchema[]) => {
     try {
-        for (const response of responses) {
-            await supabaseAdmin.from('history').insert(response).select().then(({ data, error }) => {
-                if (error) throw error; 
-                console.log('Response saved on database:', data);
-            });
-        }
+        const { data, error } = await supabaseAdmin.from('history').insert(responses);
 
-        return responses;
+        if (error) {
+            console.error('Error saving responses on database:', error);
+            throw new Error('Failed to save responses on database');
+        }
+        return true; 
     } catch (error) {
         console.error('Error saving responses on database:', error);
         throw new Error('Failed to save responses on database');
@@ -66,7 +62,7 @@ const saveAllResponsesOnDatabase = async (responses: responseSchema[]) => {
 
 // Function to fetch responses for all members
 const fetchResponseOfMember = async (members: MemberInfoSchema[], userInfo: UserInfoSchema) => {
-    const responses = [];
+    const responses: ResponseSchema[] = [];
 
     for (const member of members) {
         const response = await createResponseOfMember(member, userInfo.user_input);
@@ -91,7 +87,7 @@ const createResponseOfMember = async (member: MemberInfoSchema, user_input: stri
             contents: contents
         });
         
-        return response.text; // This can be undefined if the response is not as expected
+        return response.text
     } catch (error) {
         console.error('Error creating response:', error);
         throw new Error('Failed to create response');
