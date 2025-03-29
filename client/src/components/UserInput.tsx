@@ -1,15 +1,44 @@
 import React from "react";
 import { useState } from "react"; // Importa o hook useState para gerenciar o estado do input
 
-const UserInput = () => {
+interface UserInputProps {
+  userId: string;
+}
+
+const UserInput = ({ userId }: UserInputProps) => {
   // useState cria uma variável de estado "inputValue" e uma função "setInputValue" para alterá-la
   const [inputValue, setInputValue] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   // Função chamada quando o formulário é enviado
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault(); // Evita que a página recarregue ao enviar o formulário
-    console.log("Texto digitado:", inputValue); // Exibe no console o que foi digitado
-    setInputValue(""); // Limpa o campo de input após o envio
+    if (!inputValue.trim()) return;
+
+    setIsLoading(true);
+    try {
+      const response = await fetch('http://localhost:3000/api/history', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: userId,
+          user_input: inputValue,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to send input to server');
+      }
+
+      setInputValue(""); // Limpa o campo de input após o envio
+    } catch (error) {
+      console.error('Error sending input:', error);
+      alert('Failed to process your input. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Função para ativar o reconhecimento de voz
@@ -52,22 +81,42 @@ const UserInput = () => {
   };
 
   return (
-    <div className="bg-white">
-      <h1>Meu Formulário</h1>
+    <div className="w-full max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-lg">
+      <h1 className="text-2xl font-bold mb-6 text-gray-800">Share Your Thoughts</h1>
 
       {/* Formulário com input e botão de envio */}
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          value={inputValue} // Define o valor do input como o estado "inputValue"
-          onChange={(e) => setInputValue(e.target.value)} // Atualiza o estado ao digitar no input
-          placeholder="Digite ou fale algo..." // Texto de ajuda dentro do input
-        />
-        <button type="submit">Enviar</button> {/* Botão para enviar o formulário */}
-      </form>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="relative">
+          <textarea
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            placeholder="What's on your mind? Share your thoughts or concerns..."
+            className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none h-32"
+            disabled={isLoading}
+          />
+        </div>
 
-      {/* Botão que ativa o reconhecimento de voz */}
-      <button onClick={handleVoiceInput}>🎤 Gravar</button>
+        <div className="flex gap-4">
+          <button
+            type="submit"
+            disabled={isLoading || !inputValue.trim()}
+            className={`flex-1 bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition-colors
+              ${(isLoading || !inputValue.trim()) ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
+            {isLoading ? 'Processing...' : 'Submit'}
+          </button>
+
+          <button
+            type="button"
+            onClick={handleVoiceInput}
+            disabled={isLoading}
+            className={`flex items-center justify-center bg-gray-100 text-gray-700 py-2 px-6 rounded-lg hover:bg-gray-200 transition-colors
+              ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
+            🎤 Voice Input
+          </button>
+        </div>
+      </form>
     </div>
   );
 };

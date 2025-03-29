@@ -50,18 +50,15 @@ export default function Main({ userId }: MainProps) {
   }
 
   return (
-    <>
-    <div className="bg-zinc-900 flex flex-col items-center">
-      <div className="mb-8">
-        <UserInput />
-        <h1 className="text-3xl font-bold text-white">The microphone/input comes here</h1>
-      </div>
-        <div className='flex flex-row gap-6 flex-wrap justify-center max-w-7xl'>
+    <div className="bg-zinc-900 flex flex-col items-center p-6">
+      <div className="w-full max-w-7xl space-y-8">
+        <UserInput userId={userId} />
+        <div className='flex flex-row gap-6 flex-wrap justify-center'>
           {members.map((member) => (
             <MemberCard key={member.id} name={member.name} role={member.role} image={member.picture} />
           ))}
         </div>
+      </div>
     </div>
-    </>
   )
 }

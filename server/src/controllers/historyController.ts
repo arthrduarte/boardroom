@@ -24,13 +24,9 @@ type UserInfoSchema = z.infer<typeof userInfoSchema>;
 const createHistory = async (req: Request, res: Response) => {
     try {
         const userInfo = userInfoSchema.parse(req.body);
-        console.log("User info ", userInfo);
         const allMembers = await allMembersFromUser(userInfo.user_id);
-        console.log("All members ", allMembers);
         const generateResponses = await fetchResponseOfMembers(allMembers, userInfo);
-        console.log("Generate responses ", generateResponses);
         const saveAllResponses = await saveAllResponsesOnDatabase(generateResponses);
-        console.log("Save all responses ", saveAllResponses);
 
         if (!saveAllResponses) {
             throw new Error('Failed to save responses on database');
@@ -151,6 +147,8 @@ const createResponseOfMember = async (member: MemberInfoSchema, user_input: stri
         Provide insightful, thoughtful, and relevant answers tailored to who you are. 
         Offer advice, opinions, or analysis based on your unique expertise and personal experiences.
         Don't bullshit the user with numered lists. You must give the answer of your true self, as if you're talking to a beloved one.
+
+        User input: ${user_input}
         `;
 
         // const response = await gemini.models.generateContent({
@@ -171,6 +169,8 @@ const createResponseOfMember = async (member: MemberInfoSchema, user_input: stri
                 }
             ]
         });
+        console.log("System prompt ", systemPrompt);
+        console.log("Response ", response.choices[0].message.content);
         
         return response.choices[0].message.content;
     } catch (error) {
