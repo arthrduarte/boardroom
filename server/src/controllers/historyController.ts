@@ -65,7 +65,7 @@ const createHistory = async (req: Request, res: Response) => {
 // create a history with a specific member
 const createHistoryWithSpecificMember = async (req: Request, res: Response) => {
    try {
-        const memberInfo = await getMemberUsingId(req.params.id);
+        const memberInfo = await getMemberUsingId(req.params.memberId);
 
         const userInfo = userInfoSchema.parse(req.body);
 
@@ -208,4 +208,159 @@ const allMembersFromUser = async (id_user: string) => {
     return data;
 };
 
-export { createHistory, fetchResponseOfMembers, createHistoryWithSpecificMember, getMemberHistory };
+const historySchema = z.object({
+    id: z.string(),
+    user_id: z.string(),
+    member_id: z.string(),
+    user_input: z.string(),
+    member_output: z.string(),
+    created_at: z.string(),
+    historyParent_id: z.string().optional().default(""),
+});
+
+type HistorySchema = z.infer<typeof historySchema>;
+
+// Create a new history using a history
+const createHistoryUsingHistory = async (req: Request, res: Response) => {
+    try {
+        const { historyId, memberId } = req.params;
+
+        if(!historyId || !memberId) {
+            res.status(400).json({ error: 'Missing parameters' });
+        }
+
+        const dataHistory: HistorySchema = await getDataOfEspecficHistory(historyId);
+
+        if (!dataHistory) {
+            res.status(404).json({ error: 'History not found' });
+        }
+
+        const newHistory = await createHistoryUsingHistoryAndMember(dataHistory, memberId);
+
+        if (!newHistory) {
+            res.status(500).json({ error: 'Failed to create history' });
+        }
+
+        await saveResponseOnDatabase(newHistory);
+
+        res.status(200).json({ message: 'History created successfully',
+            "history": newHistory
+         });
+    } catch (error) {
+        res.status(500).json({ error: error.message || 'Failed to create history' });
+    }
+};
+
+// Create a new history using a history and a member
+const createHistoryUsingHistoryAndMember = async (dataHistory: HistorySchema, memberId: string) => {
+    const generateResponse = await fetchResponseOfMemberUsingHistory(dataHistory, memberId);
+
+    if(!generateResponse) {
+        throw new Error('Failed to create response');
+    }
+
+    return {
+        user_id: dataHistory.user_id,
+        member_id: memberId,
+        user_input: dataHistory.user_input,
+        member_output: generateResponse || '',
+        historyParent_id: dataHistory.id,
+    };
+}
+
+// fetch a responde of History using a specific member
+const fetchResponseOfMemberUsingHistory = async (dataHistory: HistorySchema, memberId: string) => {
+    try {
+        const member: MemberInfoSchema = await getMemberUsingId(memberId);
+
+        const memberResponseHistory = await getMemberUsingId(dataHistory.member_id);
+
+        let systemPrompt: string = `
+        Your name is ${member.name}, and you serve as a member of the user's personal board.
+        The user seeks guidance from the board whenever they need expert insight, advice, or different perspectives on important matters.
+
+        Your current role is ${member.role}.
+        You have a ${member.description} personality.
+        Your background is ${member.background}.
+
+        When responding, stay true to your given role, personality, and background. 
+        Provide insightful, thoughtful, and relevant answers tailored to who you are. 
+        Offer advice, opinions, or analysis based on your unique expertise and personal experiences.
+        Don't bullshit the user with numered lists. You must give the answer of your true self, as if you're talking to a beloved one.
+
+        User input: ${dataHistory.user_input}
+        
+        ${memberResponseHistory.name} reponse: ${dataHistory.member_output}
+            
+        What do you think about this, ${member.name}?`
+
+        const response = await fetchUsingClientGemini(systemPrompt);
+
+        if(!response) {
+            throw new Error('Failed to create response');
+        }
+        
+        return response;
+        
+    } catch (error: any) {
+        console.error('Error creating response:', error);
+        throw new Error(error.message || 'Failed to create response');
+    }
+}
+
+
+// fech using Gemini
+const fetchUsingClientGemini = async (input: string) => {
+    try {
+           const response = await gemini.models.generateContent({
+            model: "gemini-2.0-flash",
+            contents: input
+        });
+        
+        return response.text
+    } catch (error) {
+        console.error('Error creating response:', error);
+        throw new Error('Failed to create response');
+    }
+}
+
+// fetch using OpenAI
+const fetchUsingClientOpenai = async (input: string) => {
+    try {
+        const response = await clientOpenai.chat.completions.create({
+            model: "gpt-4o-mini",
+            messages: [
+                {
+                    role: "system",
+                    content: input
+                },
+                {
+                    role: "user",
+                    content: input
+                }
+            ]
+        });
+        
+        return response.choices[0].message.content
+    } catch (error) {
+        console.error('Error creating response:', error);
+        throw new Error('Failed to create response');
+    }
+}
+
+// helper to get data of a specific history
+const getDataOfEspecficHistory = async (historyId: string) => {
+    const { data, error } = await supabaseAdmin.from('history').select('*').eq('id', historyId).single();
+
+    if (error || !data) {
+        console.error('Error fetching history from database:', error);
+        throw new Error('History not found');
+    }
+
+    return data
+};
+
+
+
+
+export { createHistory, fetchResponseOfMembers, createHistoryWithSpecificMember, getMemberHistory, createHistoryUsingHistory };
