@@ -1,25 +1,54 @@
 import MemberCard from './MemberCard'
 import UserInput from './UserInput'
+import { useState, useEffect } from 'react'
 
-const members = [
-    { name: "Connor Walsh", role: ["Startup Founder","Growth Hacker"], image: "https://newkchtpdvzlvmwyonse.supabase.co/storage/v1/object/public/members-images//Connor_Walsh.png" },
-    { name: "Riley Storm", role: ["Ex-Military","Operations Expert"], image: "https://newkchtpdvzlvmwyonse.supabase.co/storage/v1/object/public/members-images//Riley_Storm.png" },
-    { name: "Aiden Knox", role: ["Creative Technologist","Futurist"], image: "https://newkchtpdvzlvmwyonse.supabase.co/storage/v1/object/public/members-images//Aiden_Knox.png" },
-    { name: "Liang Chen", role: ["CTO","AI Researcher"], image: "https://newkchtpdvzlvmwyonse.supabase.co/storage/v1/object/public/members-images//Liang_Chen.png" },
-    { name: "Tasha Bloom", role: ["Creative Director","Trend Analyst"], image: "https://newkchtpdvzlvmwyonse.supabase.co/storage/v1/object/public/members-images//Tasha_Bloom.png" },
-    { name: "Marcus Steele", role: ["Veteran CEO","War Strategist"], image: "https://newkchtpdvzlvmwyonse.supabase.co/storage/v1/object/public/members-images//Marcus_Steele.png" },
-    { name: "Sophia Gray", role: ["Psychologist","Cognitive Scientist"], image: "https://newkchtpdvzlvmwyonse.supabase.co/storage/v1/object/public/members-images//Sophia_Gray.png" },
-    { name: "Jules Rivera", role: ["Street-Smart Investor","Angel Mentor"], image: "https://newkchtpdvzlvmwyonse.supabase.co/storage/v1/object/public/members-images//Jules_Rivera.png" },
-    { name: "Dex Jackson", role: ["Ruthless CFO","Financial Architect"], image: "https://newkchtpdvzlvmwyonse.supabase.co/storage/v1/object/public/members-images//Dex_Jackson.png" },
-    { name: "Eleanor Hart", role: ["Chairwoman","Philosopher"], image: "https://newkchtpdvzlvmwyonse.supabase.co/storage/v1/object/public/members-images//Eleanor_Hart.png" },
-    { name: "Lucille Tran", role: ["Brand Strategist","Cultural Anthropologist"], image: "https://newkchtpdvzlvmwyonse.supabase.co/storage/v1/object/public/members-images//Lucille_Tran.png" },
-    { name: "Priya Desai", role: ["Lawyer","Policy Advisor"], image: "https://newkchtpdvzlvmwyonse.supabase.co/storage/v1/object/public/members-images//Priya_Desai.png" },
-    { name: "Dr. Omar Patel", role: ["Ethicist","AI Alignment Expert"], image: "https://newkchtpdvzlvmwyonse.supabase.co/storage/v1/object/public/members-images//Omar_Patel.png" },
-    { name: "Gianna Moretti", role: ["Diplomat","Conflict Mediator"], image: "https://newkchtpdvzlvmwyonse.supabase.co/storage/v1/object/public/members-images//Gianna_Moretti.png" },
-    { name: "Victor Kwan", role: ["Economist","Macroeconomic Analyst"], image: "https://newkchtpdvzlvmwyonse.supabase.co/storage/v1/object/public/members-images//Victor_Kwan.png" },
-]
+interface Member {
+    id: string;
+    name: string;
+    role: string[];
+    picture: string;
+}
 
-export default function Main() {
+interface MainProps {
+    userId: string;
+}
+
+export default function Main({ userId }: MainProps) {
+  const [members, setMembers] = useState<Member[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchMembers = async () => {
+      try {
+        const response = await fetch(`http://localhost:3000/api/members/user/${userId}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch members');
+        }
+        const data = await response.json();
+        setMembers(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An error occurred');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMembers();
+  }, [userId]);
+
+  if (loading) {
+    return <div className="bg-zinc-900 flex flex-col items-center">
+      <h2 className="text-white text-xl">Loading members...</h2>
+    </div>;
+  }
+
+  if (error) {
+    return <div className="bg-zinc-900 flex flex-col items-center">
+      <h2 className="text-red-500 text-xl">Error: {error}</h2>
+    </div>;
+  }
+
   return (
     <>
     <div className="bg-zinc-900 flex flex-col items-center">
@@ -29,7 +58,7 @@ export default function Main() {
       </div>
         <div className='flex flex-row gap-6 flex-wrap justify-center max-w-7xl'>
           {members.map((member) => (
-            <MemberCard key={member.name} name={member.name} role={member.role} image={member.image} />
+            <MemberCard key={member.id} name={member.name} role={member.role} image={member.picture} />
           ))}
         </div>
     </div>

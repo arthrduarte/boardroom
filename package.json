@@ -1,0 +1,13 @@
+{
+  "name": "boardroom-team-07",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "concurrently -n \"SERVER,CLIENT\" -c \"bgBlue.bold,bgGreen.bold\" \"npm run start:server\" \"npm run start:client\"",
+    "start:server": "cd server && npm run dev",
+    "start:client": "cd client && npm run dev",
+    "dev": "npm run start"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
