@@ -1,102 +1,123 @@
 import { Request, Response } from 'express';
 import { supabaseAdmin } from '../config/supabase';
+import { z } from 'zod';
 
-export const getAllMembersFromUser = (req: Request, res: Response) => {
+const memberSchema = z.object({
+  name: z.string(),
+  user_id: z.string(),
+  description: z.string(),
+  background: z.string(),
+  role: z.array(z.string()),
+  picture: z.string().optional(),
+});
+
+// Get all members for a specific user
+export const getAllMembersFromUser = async (req: Request, res: Response) => {
   try {
     const { user_id } = req.params;
-    
-    supabaseAdmin
+    const { data, error } = await supabaseAdmin
       .from('members')
       .select('*')
-      .eq('user_id', user_id)
-      .then(({ data, error }) => {
-        if (error) throw error;
-        res.status(200).json(data);
-      });
+      .eq('user_id', user_id);
+
+    if (error) throw error;
+
+    res.status(200).json(data);
   } catch (error) {
     console.error('Error fetching members:', error);
     res.status(500).json({ error: 'Failed to fetch members' });
   }
 };
 
-export const getMemberById = (req: Request, res: Response) => {
+// Get a member by ID
+export const getMemberById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    
-    supabaseAdmin
-      .from('members')
-      .select('*')
-      .eq('id', id)
-      .single()
-      .then(({ data, error }) => {
-        if (error) throw error;
-        
-        if (!data) {
-          return res.status(404).json({ error: 'Member not found' });
-        }
-        
-        res.status(200).json(data);
-      });
+    const member = await getMemberUsingId(id);
+
+    if (!member) {
+      return res.status(404).json({ error: 'Member not found' });
+    }
+    console.log(member);
+
+    res.status(200).json(member);
   } catch (error) {
     console.error('Error fetching member:', error);
     res.status(500).json({ error: 'Failed to fetch member' });
   }
 };
 
-export const createMember = (req: Request, res: Response) => {
+
+export const getMemberUsingId = async (member_id: string) => {
+  const { data, error } = await supabaseAdmin
+    .from('members')
+    .select('*')
+    .eq('id', member_id)
+    .single();
+
+  if (error) throw error;
+
+  if (!data) {
+    throw new Error('Member not found');
+  }
+
+  return data;
+};
+// Create a new member
+export const createMember = async (req: Request, res: Response) => {
   try {
-    supabaseAdmin
+    const member = memberSchema.parse(req.body);
+    const { data, error } = await supabaseAdmin
       .from('members')
-      .insert([req.body])
-      .select()
-      .then(({ data, error }) => {
-        if (error) throw error;
-        res.status(201).json(data[0]);
-      });
+      .insert(member)
+      .select();
+
+    if (error) throw error;
+
+    res.status(201).json(data[0]);
   } catch (error) {
     console.error('Error creating member:', error);
     res.status(500).json({ error: 'Failed to create member' });
   }
 };
 
-export const updateMember = (req: Request, res: Response) => {
+// Update a member
+export const updateMember = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    
-    supabaseAdmin
+    const { data, error } = await supabaseAdmin
       .from('members')
       .update(req.body)
       .eq('id', id)
-      .select()
-      .then(({ data, error }) => {
-        if (error) throw error;
-        
-        if (data.length === 0) {
-          return res.status(404).json({ error: 'Member not found' });
-        }
-        
-        res.status(200).json(data[0]);
-      });
+      .select();
+
+    if (error) throw error;
+
+    if (data.length === 0) {
+      return res.status(404).json({ error: 'Member not found' });
+    }
+
+    res.status(200).json(data[0]);
   } catch (error) {
     console.error('Error updating member:', error);
     res.status(500).json({ error: 'Failed to update member' });
   }
 };
 
-export const deleteMember = (req: Request, res: Response) => {
+// Delete a member
+export const deleteMember = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    
-    supabaseAdmin
+    const { error } = await supabaseAdmin
       .from('members')
       .delete()
-      .eq('id', id)
-      .then(({ error }) => {
-        if (error) throw error;
-        res.status(200).json({ message: 'Member deleted successfully' });
-      });
+      .eq('id', id);
+
+    if (error) throw error;
+
+    res.status(200).json({ message: 'Member deleted successfully' });
   } catch (error) {
     console.error('Error deleting member:', error);
     res.status(500).json({ error: 'Failed to delete member' });
   }
-}; 
+};
