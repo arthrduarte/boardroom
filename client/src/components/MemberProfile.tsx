@@ -1,6 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { ScrollArea } from "./ui/scroll-area";
 import { useEffect, useState } from "react";
+import { Loading } from "./ui/loading";
 
 interface HistoryEntry {
     id: string;
@@ -97,7 +98,7 @@ export default function MemberProfile({
                         <ScrollArea className="h-full">
                             <div className="p-6">
                                 {isLoading ? (
-                                    <div className="text-center text-zinc-400">Loading history...</div>
+                                    <Loading message="Loading history..." />
                                 ) : error ? (
                                     <div className="text-center text-red-400">{error}</div>
                                 ) : history.length === 0 ? (
@@ -164,7 +165,7 @@ export default function MemberProfile({
                                     </div>
                                 ) : (
                                     <div className="text-center text-zinc-400">
-                                        {isLoading ? 'Loading discussion...' : 'Select a discussion to view details'}
+                                        {isLoading ? <Loading message="Loading discussion..." /> : 'Select a discussion to view details'}
                                     </div>
                                 )}
                             </div>

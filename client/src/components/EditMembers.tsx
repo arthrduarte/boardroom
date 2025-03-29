@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle } from "./ui/card";
 import { ScrollArea } from "./ui/scroll-area";
+import { Loading } from "./ui/loading";
 import {
     Sheet,
     SheetContent,
@@ -115,11 +116,19 @@ export default function EditMembers({ userId }: EditMembersProps) {
     };
 
     if (isLoading) {
-        return <div className="text-center text-zinc-400 p-8">Loading members...</div>;
+        return (
+            <div className="min-h-[calc(100vh-4rem)] bg-zinc-900 flex items-center justify-center">
+                <Loading message="Loading members..." />
+            </div>
+        );
     }
 
     if (error) {
-        return <div className="text-center text-red-400 p-8">Error: {error}</div>;
+        return (
+            <div className="min-h-[calc(100vh-4rem)] bg-zinc-900 flex items-center justify-center">
+                <div className="text-center text-red-400 p-8">Error: {error}</div>
+            </div>
+        );
     }
 
     return (
