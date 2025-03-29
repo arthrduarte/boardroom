@@ -33,25 +33,36 @@ export const getAllMembersFromUser = async (req: Request, res: Response) => {
 export const getMemberById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { data, error } = await supabaseAdmin
-      .from('members')
-      .select('*')
-      .eq('id', id)
-      .single();
+    const member = await getMemberUsingId(id);
 
-    if (error) throw error;
-
-    if (!data) {
+    if (!member) {
       return res.status(404).json({ error: 'Member not found' });
     }
+    console.log(member);
 
-    res.status(200).json(data);
+    res.status(200).json(member);
   } catch (error) {
     console.error('Error fetching member:', error);
     res.status(500).json({ error: 'Failed to fetch member' });
   }
 };
 
+
+export const getMemberUsingId = async (member_id: string) => {
+  const { data, error } = await supabaseAdmin
+    .from('members')
+    .select('*')
+    .eq('id', member_id)
+    .single();
+
+  if (error) throw error;
+
+  if (!data) {
+    throw new Error('Member not found');
+  }
+
+  return data;
+};
 // Create a new member
 export const createMember = async (req: Request, res: Response) => {
   try {

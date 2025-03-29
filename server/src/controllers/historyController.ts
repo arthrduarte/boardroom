@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { supabaseAdmin } from '../config/supabase';
 import { z } from 'zod';
 import gemini from '../config/gemini';
+import { getMemberUsingId } from './memberController';
 
 type MemberInfoSchema = {
     id: string;
@@ -23,8 +24,30 @@ const createHistory = async (req: Request, res: Response) => {
     try {
         const userInfo = userInfoSchema.parse(req.body);
         const allMembers = await allMembersFromUser(userInfo.user_id);
-        const generateResponses = await fetchResponseOfMember(allMembers, userInfo);
+        const generateResponses = await fetchResponseOfMembers(allMembers, userInfo);
         const saveAllResponses = await saveAllResponsesOnDatabase(generateResponses);
+
+        if (!saveAllResponses) {
+            throw new Error('Failed to save responses on database');
+        }
+
+        res.status(200).json({ message: 'History created successfully' });
+    } catch (error) {
+        console.error('Error creating history:', error);
+        res.status(500).json({ error: error.message || 'Failed to create history' });
+    }
+};
+
+// create a history with a specific member
+const createHistoryWithEspecificMember = async (req: Request, res: Response) => {
+   try {
+        const memberInfo = await getMemberUsingId(req.params.id);
+
+        const userInfo = userInfoSchema.parse(req.body);
+
+        const generateResponse: ResponseSchema = await fechResponseOfMember(memberInfo, userInfo);
+
+        const saveAllResponses = await saveResponseOnDatabase(generateResponse);
 
         if (!saveAllResponses) {
             throw new Error('Failed to save responses on database');
@@ -60,8 +83,39 @@ const saveAllResponsesOnDatabase = async (responses: ResponseSchema[]) => {
     }
 }
 
+// Save a response on the database
+const saveResponseOnDatabase = async (response: ResponseSchema) => {
+    try {
+        const data = await supabaseAdmin.from('history').insert(response);
+            if (data.error) {
+                console.error('Error saving response on database:', data.error);
+                throw new Error('Failed to save response on database');
+             }
+        return true;
+    } catch (error) {
+        throw new Error('Failed to save response on database');
+    }
+
+}
+
+// fech a response of a unique member
+const fechResponseOfMember = async (member: MemberInfoSchema, userInfo: UserInfoSchema) => {
+    const response = await createResponseOfMember(member, userInfo.user_input);
+
+    if (!response) {
+        throw new Error('Failed to create response');
+    }
+
+    return {
+        user_id: userInfo.user_id,
+        member_id: member.id,
+        user_input: userInfo.user_input,
+        member_output: response || '',
+    };
+}
+
 // Function to fetch responses for all members
-const fetchResponseOfMember = async (members: MemberInfoSchema[], userInfo: UserInfoSchema) => {
+const fetchResponseOfMembers = async (members: MemberInfoSchema[], userInfo: UserInfoSchema) => {
     const responses: ResponseSchema[] = [];
 
     for (const member of members) {
@@ -106,4 +160,5 @@ const allMembersFromUser = async (id_user: string) => {
     return data;
 };
 
-export { createHistory, createResponseOfMember };
+
+export { createHistory, fetchResponseOfMembers, createHistoryWithEspecificMember };
