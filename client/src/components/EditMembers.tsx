@@ -10,6 +10,18 @@ import {
     SheetDescription,
     SheetFooter,
 } from "./ui/sheet";
+import { Pencil } from "lucide-react";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
+
+interface Picture {
+    id: string;
+    url: string;
+    created_at: string;
+}
 
 interface Member {
     id: string;
@@ -32,6 +44,8 @@ export default function EditMembers({ userId }: EditMembersProps) {
     const [error, setError] = useState<string | null>(null);
     const [editedMember, setEditedMember] = useState<Member | null>(null);
     const [isSheetOpen, setIsSheetOpen] = useState(false);
+    const [pictures, setPictures] = useState<Picture[]>([]);
+    const [isPicturesLoading, setIsPicturesLoading] = useState(false);
 
     useEffect(() => {
         fetchMembers();
@@ -52,6 +66,25 @@ export default function EditMembers({ userId }: EditMembersProps) {
             console.error('Error fetching members:', err);
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const fetchPictures = async () => {
+        console.log("Fetching pictures...");
+        setIsPicturesLoading(true);
+        try {
+            const response = await fetch('http://localhost:3000/api/pictures');
+            if (!response.ok) {
+                throw new Error('Failed to fetch pictures');
+            }
+            
+            const data = await response.json();
+            console.log("Pictures data received:", data);
+            setPictures(data);
+        } catch (err) {
+            console.error('Error fetching pictures:', err);
+        } finally {
+            setIsPicturesLoading(false);
         }
     };
 
@@ -113,6 +146,11 @@ export default function EditMembers({ userId }: EditMembersProps) {
             console.error('Error updating member:', err);
             alert('Failed to update member. Please try again.');
         }
+    };
+
+    const handlePictureSelect = (url: string) => {
+        if (!editedMember) return;
+        handleInputChange('picture', url);
     };
 
     if (isLoading) {
@@ -186,6 +224,64 @@ export default function EditMembers({ userId }: EditMembersProps) {
                     <ScrollArea className="h-[calc(100vh-10rem)] mt-6 mx-6">
                         <div className="space-y-6 pr-6">
                             <div className="space-y-4">
+                                <div className="flex items-center gap-2">
+                                    <img 
+                                        src={editedMember?.picture} 
+                                        alt={editedMember?.name} 
+                                        className="w-16 h-16 rounded-full overflow-hidden border-2 border-zinc-700 object-cover" 
+                                    />
+                                    <DropdownMenu onOpenChange={(open) => {
+                                        if (open) {
+                                            fetchPictures();
+                                        }
+                                    }}>
+                                        <DropdownMenuTrigger asChild>
+                                            <button 
+                                                className="p-2 hover:bg-zinc-800 rounded-full transition-colors"
+                                            >
+                                                <Pencil className="w-4 h-4 text-zinc-400" />
+                                            </button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent 
+                                            className="w-[320px] bg-zinc-800 border-zinc-700 p-2"
+                                            align="end"
+                                        >
+                                            <div className="mb-2 px-2 py-1">
+                                                <h4 className="text-sm font-medium text-zinc-300">Select Profile Picture</h4>
+                                            </div>
+                                            {isPicturesLoading ? (
+                                                <div className="p-4 text-center text-sm text-zinc-400">
+                                                    Loading pictures...
+                                                </div>
+                                            ) : pictures.length === 0 ? (
+                                                <div className="p-4 text-center text-sm text-zinc-400">
+                                                    No pictures available
+                                                </div>
+                                            ) : (
+                                                <div className="grid grid-cols-4 gap-2 max-h-[320px] overflow-y-auto p-1">
+                                                    {pictures.map((picture) => (
+                                                        <button
+                                                            key={picture.id}
+                                                            className={`
+                                                                aspect-square rounded-md overflow-hidden
+                                                                hover:ring-2 hover:ring-zinc-500
+                                                                transition-all duration-200
+                                                                ${editedMember?.picture === picture.url ? 'ring-2 ring-blue-500' : ''}
+                                                            `}
+                                                            onClick={() => handlePictureSelect(picture.url)}
+                                                        >
+                                                            <img
+                                                                src={picture.url}
+                                                                alt="Profile picture option"
+                                                                className="w-full h-full object-cover"
+                                                            />
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </div>
                                 <div>
                                     <label className="block text-sm font-medium text-zinc-300 mb-2">Name</label>
                                     <input
@@ -222,16 +318,6 @@ export default function EditMembers({ userId }: EditMembersProps) {
                                         onChange={(e) => handleInputChange('background', e.target.value)}
                                         className="w-full p-2 bg-zinc-800/50 text-white border border-zinc-700 rounded-md 
                                                 focus:ring-2 focus:ring-zinc-600 focus:border-transparent h-32 resize-none"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-zinc-300 mb-2">Profile Picture URL</label>
-                                    <input
-                                        type="text"
-                                        value={editedMember?.picture}
-                                        onChange={(e) => handleInputChange('picture', e.target.value)}
-                                        className="w-full p-2 bg-zinc-800/50 text-white border border-zinc-700 rounded-md 
-                                                focus:ring-2 focus:ring-zinc-600 focus:border-transparent"
                                     />
                                 </div>
                             </div>
