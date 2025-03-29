@@ -3,6 +3,7 @@ import { supabaseAdmin } from '../config/supabase';
 import { z } from 'zod';
 import gemini from '../config/gemini';
 import { getMemberUsingId } from './memberController';
+import clientOpenai from '../config/openai';
 
 type MemberInfoSchema = {
     id: string;
@@ -23,9 +24,13 @@ type UserInfoSchema = z.infer<typeof userInfoSchema>;
 const createHistory = async (req: Request, res: Response) => {
     try {
         const userInfo = userInfoSchema.parse(req.body);
+        console.log("User info ", userInfo);
         const allMembers = await allMembersFromUser(userInfo.user_id);
+        console.log("All members ", allMembers);
         const generateResponses = await fetchResponseOfMembers(allMembers, userInfo);
+        console.log("Generate responses ", generateResponses);
         const saveAllResponses = await saveAllResponsesOnDatabase(generateResponses);
+        console.log("Save all responses ", saveAllResponses);
 
         if (!saveAllResponses) {
             throw new Error('Failed to save responses on database');
@@ -134,14 +139,40 @@ const fetchResponseOfMembers = async (members: MemberInfoSchema[], userInfo: Use
 // Function to create a response using the AI model
 const createResponseOfMember = async (member: MemberInfoSchema, user_input: string) => {
     try {
-        const contents = `You are a ${member.description}. Your background is ${member.background}. Respond to the following user input: ${user_input}`;
+        const systemPrompt = `
+        Your name is ${member.name}, and you serve as a member of the user's personal board.
+        The user seeks guidance from the board whenever they need expert insight, advice, or different perspectives on important matters.
 
-        const response = await gemini.models.generateContent({
-            model: "gemini-2.0-flash",
-            contents: contents
+        Your current role is ${member.role}.
+        You have a ${member.description} personality.
+        Your background is ${member.background}.
+
+        When responding, stay true to your given role, personality, and background. 
+        Provide insightful, thoughtful, and relevant answers tailored to who you are. 
+        Offer advice, opinions, or analysis based on your unique expertise and personal experiences.
+        Don't bullshit the user with numered lists. You must give the answer of your true self, as if you're talking to a beloved one.
+        `;
+
+        // const response = await gemini.models.generateContent({
+        //     model: "gemini-2.0-flash",
+        //     contents: systemPrompt
+        // });
+
+        const response = await clientOpenai.chat.completions.create({
+            model: "gpt-4o-mini",
+            messages: [
+                {
+                    role: "system",
+                    content: systemPrompt
+                },
+                {
+                    role: "user",
+                    content: user_input
+                }
+            ]
         });
         
-        return response.text
+        return response.choices[0].message.content;
     } catch (error) {
         console.error('Error creating response:', error);
         throw new Error('Failed to create response');
