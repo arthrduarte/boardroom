@@ -4,6 +4,9 @@ import Auth from './components/Auth'
 import { supabase } from './lib/supabaseClient'
 import { Session } from '@supabase/supabase-js'
 import Main from './components/Main'
+import { Layout } from './components/Layout'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+
 function App() {
   const [session, setSession] = useState<Session | null>(null)
 
@@ -28,9 +31,14 @@ function App() {
   }
 
   return (
-    <>
-      <Main />
-    </>
+    <BrowserRouter>
+      <Layout>
+        <Routes>
+          <Route path="/" element={<Main userId={session.user.id} />} />
+          <Route path="/members" element={<div>Members Page</div>} />
+        </Routes>
+      </Layout>
+    </BrowserRouter>
   )
 }
 

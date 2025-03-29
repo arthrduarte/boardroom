@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import express, { Request, Response } from 'express';
-import { supabaseAdmin } from './config/supabase';
 import memberRoutes from './routes/memberRoutes';
+import historyRoutes from './routes/historyRoutes';
 import cors from 'cors';  
 
 const app = express();
@@ -20,6 +20,7 @@ app.get('/', (req: Request, res: Response) => {
 });
 
 app.use('/api/members', memberRoutes);
+app.use('/api/history', historyRoutes);
 
 app.listen(port, () => {
   console.log(`Server is running on port http://localhost:${port}`);
