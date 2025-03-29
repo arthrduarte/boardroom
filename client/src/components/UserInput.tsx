@@ -6,13 +6,11 @@ interface UserInputProps {
 }
 
 const UserInput = ({ userId }: UserInputProps) => {
-  // useState cria uma variável de estado "inputValue" e uma função "setInputValue" para alterá-la
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  // Função chamada quando o formulário é enviado
   const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault(); // Evita que a página recarregue ao enviar o formulário
+    event.preventDefault();
     if (!inputValue.trim()) return;
 
     setIsLoading(true);
@@ -32,7 +30,7 @@ const UserInput = ({ userId }: UserInputProps) => {
         throw new Error('Failed to send input to server');
       }
 
-      setInputValue(""); // Limpa o campo de input após o envio
+      setInputValue("");
     } catch (error) {
       console.error('Error sending input:', error);
       alert('Failed to process your input. Please try again.');
@@ -41,22 +39,19 @@ const UserInput = ({ userId }: UserInputProps) => {
     }
   };
 
-  // Função para ativar o reconhecimento de voz
   const handleVoiceInput = () => {
-    // Verifica se o navegador suporta reconhecimento de voz
     const SpeechRecognition =
       (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
-    if (!SpeechRecognition) { // Se não for suportado, exibe uma mensagem no console e sai da função
+    if (!SpeechRecognition) {
       console.log("❌ Your browser doesn't support voice recognition.");
       return;
     }
 
-    const recognition = new SpeechRecognition(); // Cria uma nova instância do reconhecimento de voz
-    recognition.lang = "en-US"; // Define o idioma para inglês
-    recognition.start(); // Inicia a captura de áudio
+    const recognition = new SpeechRecognition();
+    recognition.lang = "en-US";
+    recognition.start();
 
-    // Exibe uma mensagem no console informando que a gravação começou
     recognition.onstart = () => console.log("🎤 Recording...");
 
     interface SpeechRecognitionEvent extends Event {
@@ -65,12 +60,11 @@ const UserInput = ({ userId }: UserInputProps) => {
 
     // Quando o reconhecimento de voz obtém um resultado
     recognition.onresult = (event: SpeechRecognitionEvent) => {
-      const transcript = event.results[0][0].transcript; // Extrai o texto reconhecido
-      console.log("🗣️ You said:", transcript); // Exibe no console o que foi falado
-      setInputValue(transcript); // Atualiza o input com o texto falado
+      const transcript = event.results[0][0].transcript
+      console.log("🗣️ You said:", transcript);
+      setInputValue(transcript);
     };
 
-    // Se houver um erro durante o reconhecimento, exibe no console
     recognition.onerror = (event: any) => {
       console.log("⚠️ Error:", event.error);
     };
@@ -89,7 +83,6 @@ const UserInput = ({ userId }: UserInputProps) => {
         </p>
       </div>
 
-      {/* Formulário com input e botão de envio */}
       <form onSubmit={handleSubmit} className="p-6 space-y-4">
         <div className="relative">
           <textarea
@@ -131,4 +124,4 @@ const UserInput = ({ userId }: UserInputProps) => {
   );
 };
 
-export default UserInput; // Exporta o componente Main para ser usado em outros arquivos
+export default UserInput;
