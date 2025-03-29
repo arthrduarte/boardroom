@@ -20,6 +20,29 @@ const userInfoSchema = z.object({
 
 type UserInfoSchema = z.infer<typeof userInfoSchema>;
 
+// Function to fetch history for a specific member and user
+const getMemberHistory = async (req: Request, res: Response) => {
+    try {
+        const { memberId, userId } = req.params;
+
+        const { data, error } = await supabaseAdmin
+            .from('history')
+            .select('*')
+            .eq('member_id', memberId)
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            throw new Error('Failed to fetch history');
+        }
+
+        res.status(200).json(data);
+    } catch (error) {
+        console.error('Error fetching history:', error);
+        res.status(500).json({ error: error.message || 'Failed to fetch history' });
+    }
+};
+
 // Function to create history for a user
 const createHistory = async (req: Request, res: Response) => {
     try {
@@ -96,7 +119,6 @@ const saveResponseOnDatabase = async (response: ResponseSchema) => {
     } catch (error) {
         throw new Error('Failed to save response on database');
     }
-
 }
 
 // fech a response of a unique member
@@ -151,11 +173,6 @@ const createResponseOfMember = async (member: MemberInfoSchema, user_input: stri
         User input: ${user_input}
         `;
 
-        // const response = await gemini.models.generateContent({
-        //     model: "gemini-2.0-flash",
-        //     contents: systemPrompt
-        // });
-
         const response = await clientOpenai.chat.completions.create({
             model: "gpt-4o-mini",
             messages: [
@@ -191,5 +208,4 @@ const allMembersFromUser = async (id_user: string) => {
     return data;
 };
 
-
-export { createHistory, fetchResponseOfMembers, createHistoryWithSpecificMember };
+export { createHistory, fetchResponseOfMembers, createHistoryWithSpecificMember, getMemberHistory };
