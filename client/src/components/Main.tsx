@@ -55,7 +55,14 @@ export default function Main({ userId }: MainProps) {
         <UserInput userId={userId} />
         <div className='flex flex-row gap-6 flex-wrap justify-center'>
           {members.map((member) => (
-            <MemberCard key={member.id} name={member.name} role={member.role} image={member.picture} />
+            <MemberCard 
+              key={member.id}
+              id={member.id}
+              userId={userId}
+              name={member.name}
+              role={member.role}
+              image={member.picture}
+            />
           ))}
         </div>
       </div>
