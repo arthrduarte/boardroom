@@ -40,7 +40,7 @@ const createHistory = async (req: Request, res: Response) => {
 };
 
 // create a history with a specific member
-const createHistoryWithEspecificMember = async (req: Request, res: Response) => {
+const createHistoryWithSpecificMember = async (req: Request, res: Response) => {
    try {
         const memberInfo = await getMemberUsingId(req.params.id);
 
@@ -192,4 +192,4 @@ const allMembersFromUser = async (id_user: string) => {
 };
 
 
-export { createHistory, fetchResponseOfMembers, createHistoryWithEspecificMember };
+export { createHistory, fetchResponseOfMembers, createHistoryWithSpecificMember };
