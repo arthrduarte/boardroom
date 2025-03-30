@@ -1,5 +1,6 @@
 import React from "react";
-import { useState } from "react"; // Importa o hook useState para gerenciar o estado do input
+import { useState } from "react"; 
+import { toast } from "sonner";
 
 interface UserInputProps {
   userId: string;
@@ -33,7 +34,7 @@ const UserInput = ({ userId }: UserInputProps) => {
       setInputValue("");
     } catch (error) {
       console.error('Error sending input:', error);
-      alert('Failed to process your input. Please try again.');
+      toast.error('Failed to process your input. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -44,7 +45,7 @@ const UserInput = ({ userId }: UserInputProps) => {
       (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
-      console.log("❌ Your browser doesn't support voice recognition.");
+      toast.error("❌ Your browser doesn't support voice recognition.");
       return;
     }
 
@@ -52,7 +53,7 @@ const UserInput = ({ userId }: UserInputProps) => {
     recognition.lang = "en-US";
     recognition.start();
 
-    recognition.onstart = () => console.log("🎤 Recording...");
+    recognition.onstart = () => toast.info("🎤 Recording...");
 
     interface SpeechRecognitionEvent extends Event {
       results: SpeechRecognitionResultList;
@@ -61,16 +62,15 @@ const UserInput = ({ userId }: UserInputProps) => {
     // Quando o reconhecimento de voz obtém um resultado
     recognition.onresult = (event: SpeechRecognitionEvent) => {
       const transcript = event.results[0][0].transcript
-      console.log("🗣️ You said:", transcript);
       setInputValue(transcript);
     };
 
     recognition.onerror = (event: any) => {
-      console.log("⚠️ Error:", event.error);
+      toast.error("⚠️ Error:", event.error);
     };
 
     recognition.onend = () => {
-      console.log("🔴 Stopped recording.");
+      toast.info("🔴 Stopped recording.");
     };
   };
 

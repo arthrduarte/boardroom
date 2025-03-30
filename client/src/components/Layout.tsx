@@ -1,6 +1,7 @@
 import { Sidebar } from "./Sidebar"
 import { useState } from "react"
 import { Menu, X } from "lucide-react"
+import { Toaster } from "./ui/sonner"
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -43,6 +44,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <main className="flex-1 overflow-y-auto w-full lg:w-[calc(100%-16rem)] relative">
         {children}
       </main>
+      <Toaster position="bottom-center" richColors />
     </div>
   )
 }
