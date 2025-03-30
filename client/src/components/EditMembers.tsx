@@ -10,12 +10,14 @@ import {
     SheetDescription,
     SheetFooter,
 } from "./ui/sheet";
-import { Pencil } from "lucide-react";
+import { Pencil, Plus, Trash2 } from "lucide-react";
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
+import { toast } from "sonner";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "./ui/dialog";
 
 interface Picture {
     id: string;
@@ -46,6 +48,7 @@ export default function EditMembers({ userId }: EditMembersProps) {
     const [isSheetOpen, setIsSheetOpen] = useState(false);
     const [pictures, setPictures] = useState<Picture[]>([]);
     const [isPicturesLoading, setIsPicturesLoading] = useState(false);
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
     useEffect(() => {
         fetchMembers();
@@ -122,35 +125,86 @@ export default function EditMembers({ userId }: EditMembersProps) {
         if (!editedMember) return;
         
         try {
-            const response = await fetch(`http://localhost:3000/api/members/${editedMember.id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(editedMember),
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to update member');
+            let response;
+            if (editedMember.id === 'new') {
+                // Create new member
+                response = await fetch('http://localhost:3000/api/members', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        name: editedMember.name,
+                        description: editedMember.description,
+                        background: editedMember.background,
+                        role: editedMember.role,
+                        picture: editedMember.picture || '',
+                        user_id: userId
+                    }),
+                });
+            } else {
+                // Update existing member
+                response = await fetch(`http://localhost:3000/api/members/${editedMember.id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(editedMember),
+                });
             }
 
-            // Update the members list with the edited member
-            setMembers(prev => prev.map(m => 
-                m.id === editedMember.id ? editedMember : m
-            ));
+            if (!response.ok) {
+                throw new Error(editedMember.id === 'new' ? 'Failed to create member' : 'Failed to update member');
+            }
+
+            const savedMember = await response.json();
+
+            // Update the members list
+            setMembers(prev => 
+                editedMember.id === 'new' 
+                    ? [...prev, savedMember]
+                    : prev.map(m => m.id === editedMember.id ? savedMember : m)
+            );
             
-            // Update the selected member
-            setSelectedMember(editedMember);
             setIsSheetOpen(false);
+            toast.success('Member saved successfully!');
         } catch (err) {
-            console.error('Error updating member:', err);
-            alert('Failed to update member. Please try again.');
+            console.error('Error saving member:', err);
+            toast.error('Failed to save member. Please try again.');
         }
     };
 
     const handlePictureSelect = (url: string) => {
         if (!editedMember) return;
         handleInputChange('picture', url);
+    };
+
+    const handleDelete = async () => {
+        if (!editedMember || editedMember.id === 'new') return;
+        setIsDeleteDialogOpen(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!editedMember || editedMember.id === 'new') return;
+
+        try {
+            const response = await fetch(`http://localhost:3000/api/members/${editedMember.id}`, {
+                method: 'DELETE',
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to delete member');
+            }
+
+            // Remove the member from the list
+            setMembers(prev => prev.filter(m => m.id !== editedMember.id));
+            setIsSheetOpen(false);
+            setIsDeleteDialogOpen(false);
+            toast.success('Member deleted successfully!');
+        } catch (err) {
+            console.error('Error deleting member:', err);
+            toast.error('Failed to delete member. Please try again.');
+        }
     };
 
     if (isLoading) {
@@ -177,6 +231,22 @@ export default function EditMembers({ userId }: EditMembersProps) {
                     <p className="text-zinc-400 mt-2">Select a member to edit their information</p>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    <Card 
+                        className="bg-zinc-900 text-zinc-400 cursor-pointer border-2 border-dashed border-zinc-700 transition-all duration-300 hover:border-zinc-500 hover:text-zinc-200 hover:shadow-lg hover:shadow-zinc-900/20"
+                        onClick={() => handleMemberSelect({
+                            id: 'new',
+                            name: '',
+                            description: '',
+                            background: '',
+                            role: [],
+                            picture: '',
+                            user_id: userId
+                        })}
+                    >
+                        <CardHeader className="flex items-center justify-center h-[104px]">
+                            <Plus className="w-8 h-8" />
+                        </CardHeader>
+                    </Card>
                     {members.map((member) => (
                         <Card 
                             key={member.id}
@@ -225,11 +295,16 @@ export default function EditMembers({ userId }: EditMembersProps) {
                         <div className="space-y-6 pr-6">
                             <div className="space-y-4">
                                 <div className="flex items-center gap-2">
-                                    <img 
-                                        src={editedMember?.picture} 
-                                        alt={editedMember?.name} 
-                                        className="w-16 h-16 rounded-full overflow-hidden border-2 border-zinc-700 object-cover" 
-                                    />
+                                    {editedMember?.picture ? (
+                                        <img 
+                                            src={editedMember?.picture} 
+                                            alt={editedMember?.name} 
+                                            className="w-16 h-16 rounded-full overflow-hidden border-2 border-zinc-700 object-cover" 
+                                        />
+                                    ) : (
+                                        <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-zinc-700 bg-zinc-800 flex items-center justify-center">
+                                        </div>
+                                    )}
                                     <DropdownMenu onOpenChange={(open) => {
                                         if (open) {
                                             fetchPictures();
@@ -325,16 +400,54 @@ export default function EditMembers({ userId }: EditMembersProps) {
                     </ScrollArea>
 
                     <SheetFooter className="border-t border-zinc-800 pt-4">
-                        <button
-                            onClick={handleSave}
-                            className="w-full bg-zinc-800 text-white py-2 px-4 rounded-md border border-zinc-700
-                                    hover:bg-zinc-700 hover:border-zinc-600 transition-all duration-200"
-                        >
-                            Save Changes
-                        </button>
+                        <div className="flex w-full gap-2">
+                            <button
+                                onClick={handleSave}
+                                className="cursor-pointer flex-1 bg-zinc-800 text-white py-2 px-4 rounded-md border border-zinc-700
+                                        hover:bg-zinc-700 hover:border-zinc-600 transition-all duration-200"
+                            >
+                                Save Changes
+                            </button>
+                            {editedMember?.id !== 'new' && (
+                                <button
+                                    onClick={handleDelete}
+                                    className="cursor-pointer px-4 py-2 text-red-400 border border-zinc-700 rounded-md hover:bg-red-500/10 
+                                            hover:border-red-500/50 hover:text-red-300 transition-all duration-200"
+                                >
+                                    <Trash2 className="w-5 h-5" />
+                                </button>
+                            )}
+                        </div>
                     </SheetFooter>
                 </SheetContent>
             </Sheet>
+
+            <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                <DialogContent className="bg-zinc-900 border-zinc-800 text-white">
+                    <DialogHeader>
+                        <DialogTitle className="text-xl font-semibold">Delete Member</DialogTitle>
+                        <DialogDescription className="text-zinc-400">
+                            Are you sure you want to delete {editedMember?.name}? This action cannot be undone.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="flex gap-2 border-t border-zinc-800 pt-4">
+                        <button
+                            onClick={() => setIsDeleteDialogOpen(false)}
+                            className="cursor-pointer flex-1 bg-zinc-800 text-white py-2 px-4 rounded-md border border-zinc-700
+                                    hover:bg-zinc-700 hover:border-zinc-600 transition-all duration-200"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={confirmDelete}
+                            className="cursor-pointer flex-1 bg-red-500/10 text-red-400 py-2 px-4 rounded-md border border-red-500/50
+                                    hover:bg-red-500/20 hover:text-red-300 transition-all duration-200"
+                        >
+                            Delete
+                        </button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </>
     );
 }
