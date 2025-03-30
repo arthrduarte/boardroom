@@ -37,7 +37,7 @@ const getMemberHistory = async (req: Request, res: Response) => {
         }
 
         res.status(200).json(data);
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error fetching history:', error);
         res.status(500).json({ error: error.message || 'Failed to fetch history' });
     }
@@ -56,7 +56,7 @@ const createHistory = async (req: Request, res: Response) => {
         }
 
         res.status(200).json({ message: 'History created successfully' });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error creating history:', error);
         res.status(500).json({ error: error.message || 'Failed to create history' });
     }
@@ -78,7 +78,7 @@ const createHistoryWithSpecificMember = async (req: Request, res: Response) => {
         }
 
         res.status(200).json({ message: 'History created successfully' });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error creating history:', error);
         res.status(500).json({ error: error.message || 'Failed to create history' });
     }
@@ -246,7 +246,7 @@ const createHistoryUsingHistory = async (req: Request, res: Response) => {
         res.status(200).json({ message: 'History created successfully',
             "history": newHistory
          });
-    } catch (error) {
+    } catch (error: any) {
         res.status(500).json({ error: error.message || 'Failed to create history' });
     }
 };
