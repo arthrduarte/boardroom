@@ -10,7 +10,7 @@ import {
     SheetDescription,
     SheetFooter,
 } from "./ui/sheet";
-import { Pencil } from "lucide-react";
+import { Pencil, Plus } from "lucide-react";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -177,6 +177,13 @@ export default function EditMembers({ userId }: EditMembersProps) {
                     <p className="text-zinc-400 mt-2">Select a member to edit their information</p>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    <Card 
+                        className="bg-zinc-900 text-zinc-400 cursor-pointer border-2 border-dashed border-zinc-700 transition-all duration-300 hover:border-zinc-500 hover:text-zinc-200 hover:shadow-lg hover:shadow-zinc-900/20"
+                    >
+                        <CardHeader className="flex items-center justify-center h-[104px]">
+                            <Plus className="w-8 h-8" />
+                        </CardHeader>
+                    </Card>
                     {members.map((member) => (
                         <Card 
                             key={member.id}
