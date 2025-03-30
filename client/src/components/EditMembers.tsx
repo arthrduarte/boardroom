@@ -10,13 +10,14 @@ import {
     SheetDescription,
     SheetFooter,
 } from "./ui/sheet";
-import { Pencil, Plus } from "lucide-react";
+import { Pencil, Plus, Trash2 } from "lucide-react";
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import { toast } from "sonner";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "./ui/dialog";
 
 interface Picture {
     id: string;
@@ -47,6 +48,7 @@ export default function EditMembers({ userId }: EditMembersProps) {
     const [isSheetOpen, setIsSheetOpen] = useState(false);
     const [pictures, setPictures] = useState<Picture[]>([]);
     const [isPicturesLoading, setIsPicturesLoading] = useState(false);
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
     useEffect(() => {
         fetchMembers();
@@ -175,6 +177,34 @@ export default function EditMembers({ userId }: EditMembersProps) {
     const handlePictureSelect = (url: string) => {
         if (!editedMember) return;
         handleInputChange('picture', url);
+    };
+
+    const handleDelete = async () => {
+        if (!editedMember || editedMember.id === 'new') return;
+        setIsDeleteDialogOpen(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!editedMember || editedMember.id === 'new') return;
+
+        try {
+            const response = await fetch(`http://localhost:3000/api/members/${editedMember.id}`, {
+                method: 'DELETE',
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to delete member');
+            }
+
+            // Remove the member from the list
+            setMembers(prev => prev.filter(m => m.id !== editedMember.id));
+            setIsSheetOpen(false);
+            setIsDeleteDialogOpen(false);
+            toast.success('Member deleted successfully!');
+        } catch (err) {
+            console.error('Error deleting member:', err);
+            toast.error('Failed to delete member. Please try again.');
+        }
     };
 
     if (isLoading) {
@@ -370,16 +400,54 @@ export default function EditMembers({ userId }: EditMembersProps) {
                     </ScrollArea>
 
                     <SheetFooter className="border-t border-zinc-800 pt-4">
-                        <button
-                            onClick={handleSave}
-                            className="w-full bg-zinc-800 text-white py-2 px-4 rounded-md border border-zinc-700
-                                    hover:bg-zinc-700 hover:border-zinc-600 transition-all duration-200"
-                        >
-                            Save Changes
-                        </button>
+                        <div className="flex w-full gap-2">
+                            <button
+                                onClick={handleSave}
+                                className="cursor-pointer flex-1 bg-zinc-800 text-white py-2 px-4 rounded-md border border-zinc-700
+                                        hover:bg-zinc-700 hover:border-zinc-600 transition-all duration-200"
+                            >
+                                Save Changes
+                            </button>
+                            {editedMember?.id !== 'new' && (
+                                <button
+                                    onClick={handleDelete}
+                                    className="cursor-pointer px-4 py-2 text-red-400 border border-zinc-700 rounded-md hover:bg-red-500/10 
+                                            hover:border-red-500/50 hover:text-red-300 transition-all duration-200"
+                                >
+                                    <Trash2 className="w-5 h-5" />
+                                </button>
+                            )}
+                        </div>
                     </SheetFooter>
                 </SheetContent>
             </Sheet>
+
+            <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                <DialogContent className="bg-zinc-900 border-zinc-800 text-white">
+                    <DialogHeader>
+                        <DialogTitle className="text-xl font-semibold">Delete Member</DialogTitle>
+                        <DialogDescription className="text-zinc-400">
+                            Are you sure you want to delete {editedMember?.name}? This action cannot be undone.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="flex gap-2 border-t border-zinc-800 pt-4">
+                        <button
+                            onClick={() => setIsDeleteDialogOpen(false)}
+                            className="cursor-pointer flex-1 bg-zinc-800 text-white py-2 px-4 rounded-md border border-zinc-700
+                                    hover:bg-zinc-700 hover:border-zinc-600 transition-all duration-200"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={confirmDelete}
+                            className="cursor-pointer flex-1 bg-red-500/10 text-red-400 py-2 px-4 rounded-md border border-red-500/50
+                                    hover:bg-red-500/20 hover:text-red-300 transition-all duration-200"
+                        >
+                            Delete
+                        </button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </>
     );
 }
