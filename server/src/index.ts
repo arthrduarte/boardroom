@@ -3,6 +3,7 @@ import express, { Request, Response } from 'express';
 import memberRoutes from './routes/memberRoutes';
 import historyRoutes from './routes/historyRoutes';
 import cors from 'cors';  
+import picturesRoutes from './routes/picturesRoutes';
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -21,6 +22,7 @@ app.get('/', (req: Request, res: Response) => {
 
 app.use('/api/members', memberRoutes);
 app.use('/api/history', historyRoutes);
+app.use('/api/pictures', picturesRoutes);
 
 app.listen(port, () => {
   console.log(`Server is running on port http://localhost:${port}`);

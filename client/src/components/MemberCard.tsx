@@ -3,13 +3,15 @@ import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
 import MemberProfile from "./MemberProfile";
 
 interface MemberCardProps {
+    id: string;
+    userId: string;
     name: string;
     role: string[];
     image: string;
     thoughts?: string;   // Making thoughts optional
 }
 
-export default function MemberCard({ name, role, image, thoughts }: MemberCardProps) {
+export default function MemberCard({ id, userId, name, role, image, thoughts }: MemberCardProps) {
     const [isProfileOpen, setIsProfileOpen] = useState(false);
 
     return (
@@ -53,6 +55,8 @@ export default function MemberCard({ name, role, image, thoughts }: MemberCardPr
                 name={name}
                 role={role}
                 image={image}
+                userId={userId}
+                memberId={id}
             />
         </>
     )
