@@ -179,6 +179,15 @@ export default function EditMembers({ userId }: EditMembersProps) {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                     <Card 
                         className="bg-zinc-900 text-zinc-400 cursor-pointer border-2 border-dashed border-zinc-700 transition-all duration-300 hover:border-zinc-500 hover:text-zinc-200 hover:shadow-lg hover:shadow-zinc-900/20"
+                        onClick={() => handleMemberSelect({
+                            id: '',
+                            name: '',
+                            description: '',
+                            background: '',
+                            role: [],
+                            picture: '',
+                            user_id: userId
+                        })}
                     >
                         <CardHeader className="flex items-center justify-center h-[104px]">
                             <Plus className="w-8 h-8" />
@@ -232,11 +241,16 @@ export default function EditMembers({ userId }: EditMembersProps) {
                         <div className="space-y-6 pr-6">
                             <div className="space-y-4">
                                 <div className="flex items-center gap-2">
-                                    <img 
-                                        src={editedMember?.picture} 
-                                        alt={editedMember?.name} 
-                                        className="w-16 h-16 rounded-full overflow-hidden border-2 border-zinc-700 object-cover" 
-                                    />
+                                    {editedMember?.picture ? (
+                                        <img 
+                                            src={editedMember?.picture} 
+                                            alt={editedMember?.name} 
+                                            className="w-16 h-16 rounded-full overflow-hidden border-2 border-zinc-700 object-cover" 
+                                        />
+                                    ) : (
+                                        <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-zinc-700 bg-zinc-800 flex items-center justify-center">
+                                        </div>
+                                    )}
                                     <DropdownMenu onOpenChange={(open) => {
                                         if (open) {
                                             fetchPictures();
