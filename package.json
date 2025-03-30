@@ -11,7 +11,7 @@
     "install:all": "cross-env-shell \"npm install && cd server && npm install && cd ../client && npm install\""
   },
   "engines": {
-    "node": ">=16.0.0"
+    "node": "16.x"
   },
   "devDependencies": {
     "concurrently": "^9.1.2",
