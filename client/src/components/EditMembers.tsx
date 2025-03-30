@@ -122,29 +122,51 @@ export default function EditMembers({ userId }: EditMembersProps) {
         if (!editedMember) return;
         
         try {
-            const response = await fetch(`http://localhost:3000/api/members/${editedMember.id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(editedMember),
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to update member');
+            let response;
+            if (editedMember.id === 'new') {
+                // Create new member
+                response = await fetch('http://localhost:3000/api/members', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        name: editedMember.name,
+                        description: editedMember.description,
+                        background: editedMember.background,
+                        role: editedMember.role,
+                        picture: editedMember.picture || '',
+                        user_id: userId
+                    }),
+                });
+            } else {
+                // Update existing member
+                response = await fetch(`http://localhost:3000/api/members/${editedMember.id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(editedMember),
+                });
             }
 
-            // Update the members list with the edited member
-            setMembers(prev => prev.map(m => 
-                m.id === editedMember.id ? editedMember : m
-            ));
+            if (!response.ok) {
+                throw new Error(editedMember.id === 'new' ? 'Failed to create member' : 'Failed to update member');
+            }
+
+            const savedMember = await response.json();
+
+            // Update the members list
+            setMembers(prev => 
+                editedMember.id === 'new' 
+                    ? [...prev, savedMember]
+                    : prev.map(m => m.id === editedMember.id ? savedMember : m)
+            );
             
-            // Update the selected member
-            setSelectedMember(editedMember);
             setIsSheetOpen(false);
         } catch (err) {
-            console.error('Error updating member:', err);
-            alert('Failed to update member. Please try again.');
+            console.error('Error saving member:', err);
+            alert('Failed to save member. Please try again.');
         }
     };
 
@@ -180,7 +202,7 @@ export default function EditMembers({ userId }: EditMembersProps) {
                     <Card 
                         className="bg-zinc-900 text-zinc-400 cursor-pointer border-2 border-dashed border-zinc-700 transition-all duration-300 hover:border-zinc-500 hover:text-zinc-200 hover:shadow-lg hover:shadow-zinc-900/20"
                         onClick={() => handleMemberSelect({
-                            id: '',
+                            id: 'new',
                             name: '',
                             description: '',
                             background: '',
