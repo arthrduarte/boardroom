@@ -16,6 +16,7 @@ import {
     DropdownMenuContent,
     DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
+import { toast } from "sonner";
 
 interface Picture {
     id: string;
@@ -164,9 +165,10 @@ export default function EditMembers({ userId }: EditMembersProps) {
             );
             
             setIsSheetOpen(false);
+            toast.success('Member saved successfully!');
         } catch (err) {
             console.error('Error saving member:', err);
-            alert('Failed to save member. Please try again.');
+            toast.error('Failed to save member. Please try again.');
         }
     };
 
