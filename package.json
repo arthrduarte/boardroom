@@ -2,12 +2,19 @@
   "name": "boardroom-team-07",
   "version": "1.0.0",
   "scripts": {
-    "start": "concurrently -n \"SERVER,CLIENT\" -c \"bgBlue.bold,bgGreen.bold\" \"npm run start:server\" \"npm run start:client\"",
-    "start:server": "cd server && npm run dev",
-    "start:client": "cd client && npm run dev",
-    "dev": "npm run start"
+    "start": "cd server && npm run start",
+    "heroku-postbuild": "cd server && npm install && npm run build",
+    "start:dev": "concurrently -n \"SERVER,CLIENT\" -c \"bgBlue.bold,bgGreen.bold\" \"npm run start:server\" \"npm run start:client\"",
+    "start:server": "cross-env-shell \"cd server && npm run dev\"",
+    "start:client": "cross-env-shell \"cd client && npm run dev\"",
+    "dev": "npm run start:dev",
+    "install:all": "cross-env-shell \"npm install && cd server && npm install && cd ../client && npm install\""
+  },
+  "engines": {
+    "node": ">=16.0.0"
   },
   "devDependencies": {
-    "concurrently": "^9.1.2"
+    "concurrently": "^9.1.2",
+    "cross-env": "^7.0.3"
   }
 }
