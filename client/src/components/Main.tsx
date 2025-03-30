@@ -1,6 +1,7 @@
 import MemberCard from './MemberCard'
 import UserInput from './UserInput'
 import { useState, useEffect } from 'react'
+import { Loading } from './ui/loading'
 
 interface Member {
     id: string;
@@ -38,30 +39,38 @@ export default function Main({ userId }: MainProps) {
   }, [userId]);
 
   if (loading) {
-    return <div className="bg-zinc-900 flex flex-col items-center">
-      <h2 className="text-white text-xl">Loading members...</h2>
-    </div>;
+    return (
+      <div className="bg-zinc-900 min-h-[calc(100vh-4rem)] flex items-center justify-center">
+        <Loading message="Loading members..." />
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="bg-zinc-900 flex flex-col items-center">
-      <h2 className="text-red-500 text-xl">Error: {error}</h2>
-    </div>;
+    return (
+      <div className="bg-zinc-900 min-h-[calc(100vh-4rem)] flex items-center justify-center">
+        <h2 className="text-red-500 text-xl">Error: {error}</h2>
+      </div>
+    );
   }
 
   return (
-    <>
-    <div className="bg-zinc-900 flex flex-col items-center">
-      <div className="mb-8">
-        <UserInput />
-        <h1 className="text-3xl font-bold text-white">The microphone/input comes here</h1>
-      </div>
-        <div className='flex flex-row gap-6 flex-wrap justify-center max-w-7xl'>
+    <div className="bg-zinc-900 flex flex-col items-center p-6">
+      <div className="w-full max-w-7xl space-y-8">
+        <UserInput userId={userId} />
+        <div className='flex flex-row gap-6 flex-wrap justify-center'>
           {members.map((member) => (
-            <MemberCard key={member.id} name={member.name} role={member.role} image={member.picture} />
+            <MemberCard 
+              key={member.id}
+              id={member.id}
+              userId={userId}
+              name={member.name}
+              role={member.role}
+              image={member.picture}
+            />
           ))}
         </div>
+      </div>
     </div>
-    </>
   )
 }

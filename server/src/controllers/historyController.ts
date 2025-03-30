@@ -3,6 +3,7 @@ import { supabaseAdmin } from '../config/supabase';
 import { z } from 'zod';
 import gemini from '../config/gemini';
 import { getMemberUsingId } from './memberController';
+import clientOpenai from '../config/openai';
 
 type MemberInfoSchema = {
     id: string;
@@ -18,6 +19,29 @@ const userInfoSchema = z.object({
 });
 
 type UserInfoSchema = z.infer<typeof userInfoSchema>;
+
+// Function to fetch history for a specific member and user
+const getMemberHistory = async (req: Request, res: Response) => {
+    try {
+        const { memberId, userId } = req.params;
+
+        const { data, error } = await supabaseAdmin
+            .from('history')
+            .select('*')
+            .eq('member_id', memberId)
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            throw new Error('Failed to fetch history');
+        }
+
+        res.status(200).json(data);
+    } catch (error) {
+        console.error('Error fetching history:', error);
+        res.status(500).json({ error: error.message || 'Failed to fetch history' });
+    }
+};
 
 // Function to create history for a user
 const createHistory = async (req: Request, res: Response) => {
@@ -39,9 +63,9 @@ const createHistory = async (req: Request, res: Response) => {
 };
 
 // create a history with a specific member
-const createHistoryWithEspecificMember = async (req: Request, res: Response) => {
+const createHistoryWithSpecificMember = async (req: Request, res: Response) => {
    try {
-        const memberInfo = await getMemberUsingId(req.params.id);
+        const memberInfo = await getMemberUsingId(req.params.memberId);
 
         const userInfo = userInfoSchema.parse(req.body);
 
@@ -95,7 +119,6 @@ const saveResponseOnDatabase = async (response: ResponseSchema) => {
     } catch (error) {
         throw new Error('Failed to save response on database');
     }
-
 }
 
 // fech a response of a unique member
@@ -134,14 +157,39 @@ const fetchResponseOfMembers = async (members: MemberInfoSchema[], userInfo: Use
 // Function to create a response using the AI model
 const createResponseOfMember = async (member: MemberInfoSchema, user_input: string) => {
     try {
-        const contents = `You are a ${member.description}. Your background is ${member.background}. Respond to the following user input: ${user_input}`;
+        const systemPrompt = `
+        Your name is ${member.name}, and you serve as a member of the user's personal board.
+        The user seeks guidance from the board whenever they need expert insight, advice, or different perspectives on important matters.
 
-        const response = await gemini.models.generateContent({
-            model: "gemini-2.0-flash",
-            contents: contents
+        Your current role is ${member.role}.
+        You have a ${member.description} personality.
+        Your background is ${member.background}.
+
+        When responding, stay true to your given role, personality, and background. 
+        Provide insightful, thoughtful, and relevant answers tailored to who you are. 
+        Offer advice, opinions, or analysis based on your unique expertise and personal experiences.
+        Don't bullshit the user with numered lists. You must give the answer of your true self, as if you're talking to a beloved one.
+
+        User input: ${user_input}
+        `;
+
+        const response = await clientOpenai.chat.completions.create({
+            model: "gpt-4o-mini",
+            messages: [
+                {
+                    role: "system",
+                    content: systemPrompt
+                },
+                {
+                    role: "user",
+                    content: user_input
+                }
+            ]
         });
+        console.log("System prompt ", systemPrompt);
+        console.log("Response ", response.choices[0].message.content);
         
-        return response.text
+        return response.choices[0].message.content;
     } catch (error) {
         console.error('Error creating response:', error);
         throw new Error('Failed to create response');
@@ -160,5 +208,159 @@ const allMembersFromUser = async (id_user: string) => {
     return data;
 };
 
+const historySchema = z.object({
+    id: z.string(),
+    user_id: z.string(),
+    member_id: z.string(),
+    user_input: z.string(),
+    member_output: z.string(),
+    created_at: z.string(),
+    historyParent_id: z.string().optional().default(""),
+});
 
-export { createHistory, fetchResponseOfMembers, createHistoryWithEspecificMember };
+type HistorySchema = z.infer<typeof historySchema>;
+
+// Create a new history using a history
+const createHistoryUsingHistory = async (req: Request, res: Response) => {
+    try {
+        const { historyId, memberId } = req.params;
+
+        if(!historyId || !memberId) {
+            res.status(400).json({ error: 'Missing parameters' });
+        }
+
+        const dataHistory: HistorySchema = await getDataOfEspecficHistory(historyId);
+
+        if (!dataHistory) {
+            res.status(404).json({ error: 'History not found' });
+        }
+
+        const newHistory = await createHistoryUsingHistoryAndMember(dataHistory, memberId);
+
+        if (!newHistory) {
+            res.status(500).json({ error: 'Failed to create history' });
+        }
+
+        await saveResponseOnDatabase(newHistory);
+
+        res.status(200).json({ message: 'History created successfully',
+            "history": newHistory
+         });
+    } catch (error) {
+        res.status(500).json({ error: error.message || 'Failed to create history' });
+    }
+};
+
+// Create a new history using a history and a member
+const createHistoryUsingHistoryAndMember = async (dataHistory: HistorySchema, memberId: string) => {
+    const generateResponse = await fetchResponseOfMemberUsingHistory(dataHistory, memberId);
+
+    if(!generateResponse) {
+        throw new Error('Failed to create response');
+    }
+
+    return {
+        user_id: dataHistory.user_id,
+        member_id: memberId,
+        user_input: dataHistory.user_input,
+        member_output: generateResponse || '',
+        historyParent_id: dataHistory.id,
+    };
+}
+
+// fetch a responde of History using a specific member
+const fetchResponseOfMemberUsingHistory = async (dataHistory: HistorySchema, memberId: string) => {
+    try {
+        const member: MemberInfoSchema = await getMemberUsingId(memberId);
+
+        const memberResponseHistory = await getMemberUsingId(dataHistory.member_id);
+
+        let systemPrompt: string = `
+        Your name is ${member.name}, and you serve as a member of the user's personal board.
+        The user seeks guidance from the board whenever they need expert insight, advice, or different perspectives on important matters.
+
+        Your current role is ${member.role}.
+        You have a ${member.description} personality.
+        Your background is ${member.background}.
+
+        When responding, stay true to your given role, personality, and background. 
+        Provide insightful, thoughtful, and relevant answers tailored to who you are. 
+        Offer advice, opinions, or analysis based on your unique expertise and personal experiences.
+        Don't bullshit the user with numered lists. You must give the answer of your true self, as if you're talking to a beloved one.
+
+        User input: ${dataHistory.user_input}
+        
+        ${memberResponseHistory.name} reponse: ${dataHistory.member_output}
+            
+        What do you think about this, ${member.name}?`
+
+        const response = await fetchUsingClientGemini(systemPrompt);
+
+        if(!response) {
+            throw new Error('Failed to create response');
+        }
+        
+        return response;
+        
+    } catch (error: any) {
+        console.error('Error creating response:', error);
+        throw new Error(error.message || 'Failed to create response');
+    }
+}
+
+
+// fech using Gemini
+const fetchUsingClientGemini = async (input: string) => {
+    try {
+           const response = await gemini.models.generateContent({
+            model: "gemini-2.0-flash",
+            contents: input
+        });
+        
+        return response.text
+    } catch (error) {
+        console.error('Error creating response:', error);
+        throw new Error('Failed to create response');
+    }
+}
+
+// fetch using OpenAI
+const fetchUsingClientOpenai = async (input: string) => {
+    try {
+        const response = await clientOpenai.chat.completions.create({
+            model: "gpt-4o-mini",
+            messages: [
+                {
+                    role: "system",
+                    content: input
+                },
+                {
+                    role: "user",
+                    content: input
+                }
+            ]
+        });
+        
+        return response.choices[0].message.content
+    } catch (error) {
+        console.error('Error creating response:', error);
+        throw new Error('Failed to create response');
+    }
+}
+
+// helper to get data of a specific history
+const getDataOfEspecficHistory = async (historyId: string) => {
+    const { data, error } = await supabaseAdmin.from('history').select('*').eq('id', historyId).single();
+
+    if (error || !data) {
+        console.error('Error fetching history from database:', error);
+        throw new Error('History not found');
+    }
+
+    return data
+};
+
+
+
+
+export { createHistory, fetchResponseOfMembers, createHistoryWithSpecificMember, getMemberHistory, createHistoryUsingHistory };

@@ -36,7 +36,7 @@ export const getMemberById = async (req: Request, res: Response) => {
     const member = await getMemberUsingId(id);
 
     if (!member) {
-      return res.status(404).json({ error: 'Member not found' });
+      res.status(404).json({ error: 'Member not found' });
     }
     console.log(member);
 
@@ -94,7 +94,7 @@ export const updateMember = async (req: Request, res: Response) => {
     if (error) throw error;
 
     if (data.length === 0) {
-      return res.status(404).json({ error: 'Member not found' });
+      res.status(404).json({ error: 'Member not found' });
     }
 
     res.status(200).json(data[0]);
