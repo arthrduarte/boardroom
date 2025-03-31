@@ -46,20 +46,21 @@
 
 ## Table of Contents
 
-- [Overview](#overview)
-- [Features](#features)
-- [Project Structure](#project-structure)
-- [Getting Started](#getting-started)
-    - [Prerequisites](#prerequisites)
-    - [Installation](#installation)
-    - [Usage](#usage)
-    - [Testing](#testing)
-- [Roadmap](#roadmap)
-- [Contributing](#contributing)
-- [License](#license)
-- [Acknowledgments](#acknowledgments)
+1. [Overview](#overview)
+2. [Features](#features)
+3. [Project Architecture & Structure](#project-architecture--structure)
+4. [Getting Started](#getting-started)
+   - [🚀 Live Application](#-live-application)
+   - [💻 Local Development](#-local-development)
+   - [Environment Variables](#environment-variables)
+   - [Prerequisites](#prerequisites)
+5. [Roadmap](#roadmap)
+6. [Contributing](#contributing)
+7. [License](#license)
+8. [Acknowledgments](#acknowledgments)
 
 ---
+<br><br>
 
 ## Overview
 
@@ -78,6 +79,7 @@ The Boardroom is an innovative platform that simulates a virtual boardroom envir
 - 📱 **Responsive Design**: Works seamlessly across desktop and mobile devices
 
 ---
+<br><br>
 
 ## Project Architecture & Structure
 
@@ -107,8 +109,6 @@ The Boardroom is an innovative platform that simulates a virtual boardroom envir
         └── package.json
 ```
 
-
-
 ---
 <br><br>
 ## Getting Started
@@ -116,8 +116,6 @@ The Boardroom is an innovative platform that simulates a virtual boardroom envir
 ### 🚀 Live Application
 The application is available at  **→**  **[boardroom.io/](https://boardroom-app-f54ca20f8301.herokuapp.com/)**
 
-
-<br><br>
 ---
 <br><br>
 
@@ -194,6 +192,7 @@ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 - Supabase account and credentials
 
 ---
+<br><br>
 
 ## Roadmap
 
@@ -208,6 +207,7 @@ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 - [ ] **Internationalization**: Support multiple languages
 
 ---
+<br><br>
 
 ## Contributing
 
@@ -220,12 +220,14 @@ We welcome contributions!
 5. Open a Pull Request
 
 ---
+<br><br>
 
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](https://mit-license.org/) file for details.
 
 ---
+<br><br>
 
 ## Acknowledgments
 
