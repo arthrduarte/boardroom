@@ -23,7 +23,7 @@ interface MemberProfileProps {
     member: {
         id: string;
         name: string;
-        image?: string;
+        picture: string;
     };
 }
 
@@ -199,7 +199,10 @@ export default function MemberProfile({
                     <div className="w-[400px] flex flex-col h-full bg-zinc-900">
                         <MemberChat
                             member={member}
+                            userId={userId}
                             key={memberId}
+                            user_input={selectedEntry?.user_input || ''}
+                            member_output={selectedEntry?.member_output || ''}
                         />
                     </div>
                 </DialogContent>

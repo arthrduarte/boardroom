@@ -12,36 +12,26 @@ import {
 } from "./ui/dropdown-menu"
 
 interface MemberChatProps {
-  member?: {  
+  member: {  
     id: string
     name: string
-    avatar?: string
+    picture: string
   }
   userId: string
-  selectedDiscussionId?: string
-}
-
-type Message = {
-  id: string
-  sender: string
-  text: string
-  timestamp: Date
-  isCurrentUser?: boolean
-  historyParent_id?: string
+  user_input: string
+  member_output: string
 }
 
 type Member = {
   id: string
   name: string
-  role: string[]
   picture: string
 }
 
-export const MemberChat = ({ member, userId, selectedDiscussionId }: MemberChatProps) => {
+export const MemberChat = ({ member, userId, user_input, member_output }: MemberChatProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [members, setMembers] = useState<Member[]>([]);
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
-  const [inputMessage, setInputMessage] = useState("");
 
   useEffect(() => {
     const fetchMembers = async () => {
@@ -61,6 +51,37 @@ export const MemberChat = ({ member, userId, selectedDiscussionId }: MemberChatP
     fetchMembers();
   }, [userId]);
 
+    const handleSubmit = async (selectedMember: Member | null, member: Member, user_input: string, member_output: string) => {
+    setIsLoading(true);
+    try {
+      console.log("Selected member: ", selectedMember);
+      console.log("Member: ", member);
+      console.log("User input: ", user_input);
+      console.log("Member output: ", member_output);
+      // const response = await fetch(`${API_BASE_URL}/history/member/${selectedMember.id}/user/${userId}`, {
+      //   method: 'POST',
+      //   headers: {
+      //     'Content-Type': 'application/json'
+      //   },
+      //   body: JSON.stringify({
+      //     user_input,
+      //     member_output
+      //   })  
+      // });
+
+      // if (!response.ok) {
+      //   throw new Error('Failed to submit message');
+      // }
+
+      // const data = await response.json();
+      // console.log('Message submitted:', data);
+    } catch (err) {
+      console.error('Error submitting message:', err);
+      toast.error('Failed to submit message');
+    }
+  }
+  
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -75,7 +96,7 @@ export const MemberChat = ({ member, userId, selectedDiscussionId }: MemberChatP
       <div className="flex items-center justify-between p-4 border-b border-zinc-800">
         <div className="flex items-center gap-2">
           <h3 className="font-medium text-zinc-100">
-            {selectedDiscussionId ? 'Continue Discussion' : 'Start New Discussion'}
+            Chat with {member.name}
           </h3>
         </div>
       </div>
@@ -123,6 +144,7 @@ export const MemberChat = ({ member, userId, selectedDiscussionId }: MemberChatP
           <button
             className="p-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={!selectedMember}
+              onClick={() => handleSubmit(selectedMember, member, user_input, member_output)}
           >
             <ArrowUp className="h-5 w-5" />
           </button>
