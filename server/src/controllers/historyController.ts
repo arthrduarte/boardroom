@@ -360,7 +360,64 @@ const getDataOfSpecificHistory = async (historyId: string) => {
     return data
 };
 
+const createMessage = async (req: Request, res: Response) => {
+    try {
+        const { member_1, member_2, user_input, member_output, history_id } = req.body;
+        console.log("Member 1: ", member_1);
+        console.log("Member 2: ", member_2);
+        console.log("User input: ", user_input);
+        console.log("Member output: ", member_output);
+
+        let systemPrompt: string = `
+        Your name is ${member_1.name}, and you serve as a member of the user's personal board.
+        The user seeks guidance from the board whenever they need expert insight, advice, or different perspectives on important matters.
+
+        Your current role is ${member_1.role}.
+        You have a ${member_1.description} personality.
+        Your background is ${member_1.background}.
+
+        When responding, stay true to your given role, personality, and background. 
+        Provide insightful, thoughtful, and relevant answers tailored to who you are.
+        You must either agree or disagree with the other member based on your personality and opinions.
+        Offer advice, opinions, or analysis based on your unique expertise and personal experiences.
+        Don't bullshit the user with numered lists. You must give the answer of your true self, as if you're talking to a beloved one.
+
+        User input: ${user_input}
+        
+        ${member_2.name} reponse: ${member_output}
+            
+        What do you think about this, ${member_1.name}?`
+
+        console.log("System prompt: ", systemPrompt);
+
+        const response = await fetchUsingClientOpenai(systemPrompt);
+
+        if(!response) {
+            throw new Error('Failed to create response');
+        }
+
+        const { data, error } = await supabaseAdmin
+            .from('history')
+            .update({
+                chat: [
+                    {
+                        message: response,
+                        member_id: member_1.id
+                    }
+                ]
+            })
+            .eq('id', history_id);
+
+        if (error) {
+            throw new Error('Failed to save message to database');
+        }
+        
+        res.status(200).json({ response });
+    } catch (error: any) {
+        res.status(500).json({ error: error.message || 'Failed to create message' });
+    }
+}
 
 
 
-export { createHistory, fetchResponseOfMembers, createHistoryWithSpecificMember, getMemberHistory, createHistoryUsingHistory };
+export { createHistory, fetchResponseOfMembers, createHistoryWithSpecificMember, getMemberHistory, createHistoryUsingHistory, createMessage };

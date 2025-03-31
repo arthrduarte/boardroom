@@ -5,7 +5,7 @@ import { Loading } from "./ui/loading";
 import { MemberChat } from './MemberChat';
 import { API_BASE_URL } from "../config";
 
-interface HistoryEntry {
+export interface HistoryEntry {
     id: string;
     user_input: string;
     member_output: string;
@@ -201,8 +201,7 @@ export default function MemberProfile({
                             member={member}
                             userId={userId}
                             key={memberId}
-                            user_input={selectedEntry?.user_input || ''}
-                            member_output={selectedEntry?.member_output || ''}
+                            selectedEntry={selectedEntry}
                         />
                     </div>
                 </DialogContent>

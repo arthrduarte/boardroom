@@ -13,7 +13,7 @@ export type History = {
     member_id: string;
     user_input: string;
     member_output: string;
-    historyParent_id: string;
+    chat: JSON; //JSONB
     created_at: string;
 }
 

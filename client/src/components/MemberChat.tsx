@@ -10,7 +10,8 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "./ui/dropdown-menu"
-
+import { HistoryEntry } from './MemberProfile'
+  
 interface MemberChatProps {
   member: {  
     id: string
@@ -18,8 +19,7 @@ interface MemberChatProps {
     picture: string
   }
   userId: string
-  user_input: string
-  member_output: string
+  selectedEntry: HistoryEntry | null
 }
 
 type Member = {
@@ -28,7 +28,7 @@ type Member = {
   picture: string
 }
 
-export const MemberChat = ({ member, userId, user_input, member_output }: MemberChatProps) => {
+export const MemberChat = ({ member, userId, selectedEntry }: MemberChatProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [members, setMembers] = useState<Member[]>([]);
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
@@ -51,13 +51,14 @@ export const MemberChat = ({ member, userId, user_input, member_output }: Member
     fetchMembers();
   }, [userId]);
 
-    const handleSubmit = async (selectedMember: Member | null, member: Member, user_input: string, member_output: string) => {
+    const handleSubmit = async (selectedMember: Member | null, member: Member, user_input: string, member_output: string, historyId: string) => {
     setIsLoading(true);
     try {
       console.log("Selected member: ", selectedMember);
       console.log("Member: ", member);
       console.log("User input: ", user_input);
       console.log("Member output: ", member_output);
+      console.log("History ID: ", historyId);
       // const response = await fetch(`${API_BASE_URL}/history/member/${selectedMember.id}/user/${userId}`, {
       //   method: 'POST',
       //   headers: {
@@ -144,7 +145,7 @@ export const MemberChat = ({ member, userId, user_input, member_output }: Member
           <button
             className="p-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={!selectedMember}
-              onClick={() => handleSubmit(selectedMember, member, user_input, member_output)}
+              onClick={() => handleSubmit(selectedMember, member, selectedEntry?.user_input || '', selectedEntry?.member_output || '', selectedEntry?.id || '')}
           >
             <ArrowUp className="h-5 w-5" />
           </button>
