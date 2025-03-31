@@ -10,8 +10,29 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "./ui/dropdown-menu"
-import { HistoryEntry } from './MemberProfile'
-  
+
+type HistoryEntry = {
+  id: string
+  user_id: string
+  member_id: string
+  user_input: string
+  member_output: string
+  created_at: string
+  historyParent_id?: string
+  chat?: ChatMessage[]
+}
+
+type Member = {
+  id: string
+  name: string
+  picture: string
+}
+
+type ChatMessage = {
+  message: string
+  member_id: string
+}
+
 interface MemberChatProps {
   member: {  
     id: string
@@ -22,16 +43,11 @@ interface MemberChatProps {
   selectedEntry: HistoryEntry | null
 }
 
-type Member = {
-  id: string
-  name: string
-  picture: string
-}
-
 export const MemberChat = ({ member, userId, selectedEntry }: MemberChatProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [members, setMembers] = useState<Member[]>([]);
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
 
   useEffect(() => {
     const fetchMembers = async () => {
@@ -51,7 +67,18 @@ export const MemberChat = ({ member, userId, selectedEntry }: MemberChatProps) =
     fetchMembers();
   }, [userId]);
 
-    const handleSubmit = async (selectedMember: Member | null, member: Member, user_input: string, member_output: string, historyId: string) => {
+  useEffect(() => {
+    if (selectedEntry?.chat) {
+      setChatMessages(selectedEntry.chat);
+    }
+  }, [selectedEntry]);
+
+  const getMemberInfo = (memberId: string): Member | undefined => {
+    if (memberId === member.id) return member;
+    return members.find(m => m.id === memberId);
+  };
+
+  const handleSubmit = async (selectedMember: Member | null, member: Member, user_input: string, member_output: string, historyId: string) => {
     setIsLoading(true);
     try {
       if (!selectedMember) {
@@ -77,6 +104,10 @@ export const MemberChat = ({ member, userId, selectedEntry }: MemberChatProps) =
       }
 
       const data = await response.json();
+      setChatMessages(prev => [...prev, {
+        message: data.response,
+        member_id: selectedMember.id
+      }]);
       console.log('Message submitted:', data);
       toast.success('Message sent successfully');
     } catch (err) {
@@ -102,13 +133,31 @@ export const MemberChat = ({ member, userId, selectedEntry }: MemberChatProps) =
       <div className="flex items-center justify-between p-4 border-b border-zinc-800">
         <div className="flex items-center gap-2">
           <h3 className="font-medium text-zinc-100">
-            Chat with {member.name}
+            Chat
           </h3>
         </div>
       </div>
 
       {/* Messages area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {chatMessages.map((msg, index) => {
+          const messageMember = getMemberInfo(msg.member_id);
+          if (!messageMember) return null;
+
+          return (
+            <div key={index} className="flex items-start gap-3">
+              <img 
+                src={messageMember.picture} 
+                alt={messageMember.name}
+                className="w-8 h-8 rounded-full object-cover border border-zinc-700"
+              />
+              <div className="flex-1">
+                <div className="font-medium text-zinc-200 mb-1">{messageMember.name}</div>
+                <div className="text-zinc-300 text-sm">{msg.message}</div>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       {/* Input area */}

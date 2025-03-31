@@ -7,9 +7,13 @@ import { API_BASE_URL } from "../config";
 
 export interface HistoryEntry {
     id: string;
+    user_id: string;
+    member_id: string;
     user_input: string;
     member_output: string;
     created_at: string;
+    historyParent_id?: string;
+    chat?: { message: string; member_id: string; }[];
 }
 
 interface MemberProfileProps {
