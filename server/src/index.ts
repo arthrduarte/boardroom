@@ -9,6 +9,9 @@ import path from 'path';
 const app = express();
 const port = process.env.PORT || 3000;
 
+// Log environment for debugging
+console.log(`Node environment: ${process.env.NODE_ENV}`);
+
 app.use(express.json());
 
 // CORS configuration based on environment
@@ -29,6 +32,7 @@ app.use('/api/pictures', picturesRoutes);
 if (process.env.NODE_ENV === 'production') {
   // Serve static files from the client's build directory
   const clientBuildPath = path.resolve(__dirname, '../../client/dist');
+  console.log(`Serving static files from: ${clientBuildPath}`);
   app.use(express.static(clientBuildPath));
   
   // For any other requests, send the index.html file

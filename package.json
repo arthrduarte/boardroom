@@ -4,7 +4,7 @@
   "scripts": {
     "start": "cd server && npm run start",
     "heroku-postbuild": "npm run install:deps && npm run build",
-    "install:deps": "cd client && npm install --dev && cd ../server && npm install --dev",
+    "install:deps": "cd client && npm install --dev --legacy-peer-deps && cd ../server && npm install --dev --legacy-peer-deps",
     "build": "cd client && npm run build && cd ../server && npm run build",
     "start:dev": "concurrently -n \"SERVER,CLIENT\" -c \"bgBlue.bold,bgGreen.bold\" \"npm run start:server\" \"npm run start:client\"",
     "start:server": "cross-env-shell \"cd server && npm run dev\"",
@@ -13,7 +13,8 @@
     "install:all": "cross-env-shell \"npm install && cd server && npm install && cd ../client && npm install\""
   },
   "engines": {
-    "node": "20.x"
+    "node": "20.x",
+    "npm": "10.x"
   },
   "devDependencies": {
     "concurrently": "^9.1.2",
