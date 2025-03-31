@@ -49,12 +49,6 @@ export const Chat = ({
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-zinc-800">
         <div className="flex items-center gap-2">
-          <button 
-            onClick={onClose}
-            className="p-1.5 rounded-full hover:bg-zinc-800 transition-colors"
-          >
-            <X className="w-4 h-4 text-zinc-400" />
-          </button>
           <h3 className="font-medium text-zinc-100">{title}</h3>
         </div>
         

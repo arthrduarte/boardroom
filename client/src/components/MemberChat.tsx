@@ -7,18 +7,14 @@ interface MemberChatProps {
     name: string
     avatar?: string
   }
-  isOpen: boolean
-  onClose: () => void
 }
 
-export const MemberChat = ({ member, isOpen, onClose }: MemberChatProps) => {
+export const MemberChat = ({ member }: MemberChatProps) => {
   const [messages, setMessages] = useState<Message[]>([])
   const [isTyping, setIsTyping] = useState(false)
 
-  if (!member || !isOpen) return null
-
   useEffect(() => {
-    if (messages.length === 0) {
+    if (messages.length === 0 && member) {
       setIsTyping(true)
       setTimeout(() => {
         setMessages([{
@@ -31,9 +27,11 @@ export const MemberChat = ({ member, isOpen, onClose }: MemberChatProps) => {
         setIsTyping(false)
       }, 1500)
     }
-  }, [isOpen, member, messages.length])
+  }, [member, messages.length])
 
   const handleSendMessage = (text: string) => {
+    if (!member) return;
+
     const userMessage: Message = {
       id: Date.now().toString(),
       sender: 'You',
@@ -76,7 +74,7 @@ export const MemberChat = ({ member, isOpen, onClose }: MemberChatProps) => {
       ]
     }
 
-    return responses[memberName]?.[Math.floor(Math.random() * responses[memberName].length)] || 
+    return responses[memberName]?.[Math.floor(Math.random() * (responses[memberName]?.length || 0))] || 
            `Interesting point about ${input}. Let me think...`
   }
 
@@ -84,11 +82,11 @@ export const MemberChat = ({ member, isOpen, onClose }: MemberChatProps) => {
     <div className="h-full flex flex-col">
       <div className="flex-1 min-h-0">
         <Chat
-          title=""
+          title={`Chat with ${member?.name || ''}`}
           messages={isTyping 
             ? [...messages, {
                 id: 'typing',
-                sender: member.name,
+                sender: member?.name || '',
                 text: '...',
                 timestamp: new Date(),
                 isCurrentUser: false
@@ -96,7 +94,7 @@ export const MemberChat = ({ member, isOpen, onClose }: MemberChatProps) => {
             : messages
           }
           onSendMessage={handleSendMessage}
-          onClose={onClose}
+          onClose={() => {}}
           className="h-full border-0"
         />
       </div>

@@ -3,8 +3,6 @@ import { ScrollArea } from "./ui/scroll-area";
 import { useEffect, useState } from "react";
 import { Loading } from "./ui/loading";
 import { MemberChat } from './MemberChat';
-import { Button } from "./ui/button";
-import { Minimize2, X, MessageSquare, Users } from "lucide-react";
 
 interface HistoryEntry {
     id: string;
@@ -36,18 +34,19 @@ export default function MemberProfile({
     image,
     userId,
     memberId,
+    member
 }: MemberProfileProps) {
     const [history, setHistory] = useState<HistoryEntry[]>([]);
     const [selectedEntry, setSelectedEntry] = useState<HistoryEntry | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [isChatOpen, setIsChatOpen] = useState(false);
-    const [isChatMinimized, setIsChatMinimized] = useState(false);
-    const [activeChatId, setActiveChatId] = useState<string | null>(null);
 
     useEffect(() => {
         if (open && userId && memberId) {
             fetchHistory();
+        }
+        if (!open) {
+            setSelectedEntry(null);
         }
     }, [open, userId, memberId]);
 
@@ -63,6 +62,8 @@ export default function MemberProfile({
             setHistory(data);
             if (data.length > 0) {
                 setSelectedEntry(data[0]);
+            } else {
+                setSelectedEntry(null);
             }
         } catch (err) {
             setError(err instanceof Error ? err.message : 'An error occurred');
@@ -78,19 +79,6 @@ export default function MemberProfile({
             month: 'long',
             day: 'numeric',
         });
-    };
-
-    const handleStartChat = () => {
-        setIsChatOpen(true);
-        setIsChatMinimized(false);
-        setActiveChatId(`new-${Date.now()}`);
-    };
-
-    const handleResumeChat = (entry: HistoryEntry) => {
-        setSelectedEntry(entry);
-        setIsChatOpen(true);
-        setIsChatMinimized(false);
-        setActiveChatId(entry.id);
     };
 
     return (
@@ -149,15 +137,6 @@ export default function MemberProfile({
                                                                     {entry.user_input}
                                                                 </p>
                                                             </div>
-                                                            <button
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    handleResumeChat(entry);
-                                                                }}
-                                                                className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-full hover:bg-zinc-700"
-                                                            >
-                                                                <MessageSquare className="w-4 h-4 text-zinc-400" />
-                                                            </button>
                                                         </div>
                                                     </div>
                                                 ))}
@@ -168,14 +147,7 @@ export default function MemberProfile({
                             </ScrollArea>
                         </div>
                         <div className="p-4 border-t border-zinc-800">
-                            <Button
-                                onClick={handleStartChat}
-                                variant="default"
-                                className="w-full"
-                            >
-                                <MessageSquare className="w-4 h-4 mr-2" />
-                                Start New Chat
-                            </Button>
+                            <span className="text-xs text-zinc-500">Select a past discussion to view details.</span>
                         </div>
                     </div>
 
@@ -213,8 +185,8 @@ export default function MemberProfile({
                                             </div>
                                         </div>
                                     ) : (
-                                        <div className="text-center text-zinc-400 mt-8">
-                                            {isLoading ? <Loading message="Loading discussion..." /> : 'Select a discussion to view details'}
+                                        <div className="text-center text-zinc-400 mt-8 flex items-center justify-center h-full">
+                                            {isLoading ? <Loading message="Loading discussion..." /> : history.length > 0 ? 'Select a discussion to view details' : 'No discussion history available.'}
                                         </div>
                                     )}
                                 </div>
@@ -223,61 +195,14 @@ export default function MemberProfile({
                     </div>
 
                     {/* Chat Section */}
-                    {isChatOpen && (
-                        <div className="w-[400px] flex flex-col h-full bg-zinc-900">
-                            <div className="flex items-center justify-between p-6 border-b border-zinc-800">
-                                <h3 className="font-medium text-zinc-100">Chat with {name}</h3>
-                                <div className="flex items-center gap-6">
-                                    <button 
-                                        className="p-1.5 rounded-full hover:bg-zinc-800 transition-colors"
-                                        title="Add member to chat"
-                                    >
-                                        <Users className="w-4 h-4 text-zinc-400" />
-                                    </button>
-                                </div>
-                            </div>
-                            <div className="flex-1 min-h-0">
-                                <MemberChat
-                                    member={{
-                                        id: memberId,
-                                        name: name,
-                                        avatar: image
-                                    }}
-                                    isOpen={isChatOpen}
-                                    onClose={() => setIsChatOpen(false)}
-                                    key={activeChatId}
-                                />
-                            </div>
-                        </div>
-                    )}
+                    <div className="w-[400px] flex flex-col h-full bg-zinc-900">
+                        <MemberChat
+                            member={member}
+                            key={memberId}
+                        />
+                    </div>
                 </DialogContent>
             </Dialog>
-
-            {/* Minimized Chat Button */}
-            {isChatMinimized && (
-                <div 
-                    className="fixed bottom-4 right-4 z-50"
-                >
-                    <div 
-                        className="bg-zinc-800 border border-zinc-700 rounded-lg p-3 cursor-pointer hover:bg-zinc-700 transition-colors flex items-center justify-between shadow-lg"
-                        onClick={() => setIsChatMinimized(false)}
-                    >
-                        <div className="flex items-center gap-2">
-                            <MessageSquare className="w-4 h-4 text-indigo-400" />
-                            <span className="text-sm font-medium">Chat with {name}</span>
-                        </div>
-                        <button 
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setIsChatOpen(false);
-                            }}
-                            className="p-1 rounded-full hover:bg-zinc-600"
-                        >
-                            <X className="w-3 h-3 text-zinc-400" />
-                        </button>
-                    </div>
-                </div>
-            )}
         </>
     );
 }
