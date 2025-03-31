@@ -54,31 +54,36 @@ export const MemberChat = ({ member, userId, selectedEntry }: MemberChatProps) =
     const handleSubmit = async (selectedMember: Member | null, member: Member, user_input: string, member_output: string, historyId: string) => {
     setIsLoading(true);
     try {
-      console.log("Selected member: ", selectedMember);
-      console.log("Member: ", member);
-      console.log("User input: ", user_input);
-      console.log("Member output: ", member_output);
-      console.log("History ID: ", historyId);
-      // const response = await fetch(`${API_BASE_URL}/history/member/${selectedMember.id}/user/${userId}`, {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json'
-      //   },
-      //   body: JSON.stringify({
-      //     user_input,
-      //     member_output
-      //   })  
-      // });
+      if (!selectedMember) {
+        throw new Error('No member selected');
+      }
 
-      // if (!response.ok) {
-      //   throw new Error('Failed to submit message');
-      // }
+      const response = await fetch(`${API_BASE_URL}/history/message`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          member_1: selectedMember,
+          member_2: member,
+          user_input,
+          member_output,
+          history_id: historyId
+        })
+      });
 
-      // const data = await response.json();
-      // console.log('Message submitted:', data);
+      if (!response.ok) {
+        throw new Error('Failed to submit message');
+      }
+
+      const data = await response.json();
+      console.log('Message submitted:', data);
+      toast.success('Message sent successfully');
     } catch (err) {
       console.error('Error submitting message:', err);
       toast.error('Failed to submit message');
+    } finally {
+      setIsLoading(false);
     }
   }
   
