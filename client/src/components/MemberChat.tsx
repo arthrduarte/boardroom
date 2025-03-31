@@ -1,113 +1,211 @@
-import { useState, useEffect } from 'react'
-import { Chat } from '@/components/ui/chat'
+import { useState, useEffect, useRef } from 'react'
+import { cn } from "@/lib/utils"
+import { ArrowUp, ChevronDown } from "lucide-react"
+import { API_BASE_URL } from "@/config"
+import { toast } from "sonner"
+import { Loading } from "./ui/loading"
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "./ui/dropdown-menu"
 
-interface MemberChatProps {
-  member?: {  
-    id: string
-    name: string
-    avatar?: string
-  }
-  isOpen: boolean
-  onClose: () => void
+type HistoryEntry = {
+  id: string
+  user_id: string
+  member_id: string
+  user_input: string
+  member_output: string
+  created_at: string
+  historyParent_id?: string
+  chat?: ChatMessage[]
 }
 
-export const MemberChat = ({ member, isOpen, onClose }: MemberChatProps) => {
-  const [messages, setMessages] = useState<Message[]>([])
-  const [isTyping, setIsTyping] = useState(false)
+type Member = {
+  id: string
+  name: string
+  picture: string
+}
 
-  if (!member || !isOpen) return null
+type ChatMessage = {
+  message: string
+  member_id: string
+}
+
+interface MemberChatProps {
+  member: {  
+    id: string
+    name: string
+    picture: string
+  }
+  userId: string
+  selectedEntry: HistoryEntry | null
+}
+
+export const MemberChat = ({ member, userId, selectedEntry }: MemberChatProps) => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [members, setMembers] = useState<Member[]>([]);
+  const [selectedMember, setSelectedMember] = useState<Member | null>(null);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
 
   useEffect(() => {
-    if (messages.length === 0) {
-      setIsTyping(true)
-      setTimeout(() => {
-        setMessages([{
-          id: '1',
-          sender: member.name, 
-          text: `Hi there! I'm ${member.name}. What would you like to discuss?`,
-          timestamp: new Date(),
-          isCurrentUser: false
-        }])
-        setIsTyping(false)
-      }, 1500)
-    }
-  }, [isOpen, member, messages.length])
-
-  const handleSendMessage = (text: string) => {
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      sender: 'You',
-      text,
-      timestamp: new Date(),
-      isCurrentUser: true
-    }
-    setMessages(prev => [...prev, userMessage])
-    setIsTyping(true)
-
-    setTimeout(() => {
-      const reply: Message = {
-        id: Date.now().toString() + '-reply',
-        sender: member.name,
-        text: generateResponse(text, member.name),
-        timestamp: new Date(),
-        isCurrentUser: false
+    const fetchMembers = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/members/user/${userId}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch members');
+        }
+        const data = await response.json();
+        setMembers(data);
+      } catch (err) {
+        console.error('Error fetching members:', err);
+        toast.error('Failed to fetch members');
       }
-      setMessages(prev => [...prev, reply])
-      setIsTyping(false)
-    }, 1000 + Math.random() * 2000)
-  }
+    };
 
-  const generateResponse = (input: string, memberName: string): string => {
-    const responses: Record<string, string[]> = {
-      "Comor Walsh": [
-        `As a battle-tested CEO, here's my take: ${input} requires bold moves.`,
-        `${input}? That's a common challenge. The solution lies in three steps...`,
-        `*adjusts tie* Let me be frank about ${input}...`
-      ],
-      "Susan Fowler": [
-        `From a cultural perspective, ${input} raises interesting questions.`,
-        `Have you considered the team impact of ${input}?`,
-        `My research suggests a nuanced approach to ${input}.`
-      ],
-      "Gwen Hester": [
-        `Technically speaking, ${input} presents these opportunities...`,
-        `Let me break down the engineering perspective on ${input}.`,
-        `For ${input}, I'd recommend this technical approach first.`
-      ]
+    fetchMembers();
+  }, [userId]);
+
+  useEffect(() => {
+    if (selectedEntry?.chat) {
+      setChatMessages(selectedEntry.chat);
+    } else {
+      setChatMessages([]);
     }
+  }, [selectedEntry]);
 
-    return responses[memberName]?.[Math.floor(Math.random() * responses[memberName].length)] || 
-           `Interesting point about ${input}. Let me think...`
+  const getMemberInfo = (memberId: string): Member | undefined => {
+    if (memberId === member.id) return member;
+    return members.find(m => m.id === memberId);
+  };
+
+  const handleSubmit = async (selectedMember: Member | null, member: Member, user_input: string, member_output: string, historyId: string) => {
+    setIsLoading(true);
+    try {
+      if (!selectedMember) {
+        throw new Error('No member selected');
+      }
+
+      const response = await fetch(`${API_BASE_URL}/history/message`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          member_1: selectedMember,
+          member_2: member,
+          user_input,
+          member_output,
+          history_id: historyId
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit message');
+      }
+
+      const data = await response.json();
+      setChatMessages(prev => [...prev, {
+        message: data.response,
+        member_id: selectedMember.id
+      }]);
+      toast.success('Message sent successfully');
+    } catch (err) {
+      console.error('Error submitting message:', err);
+      toast.error('Failed to submit message');
+    } finally {
+      setIsLoading(false);
+    }
+  }
+  
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <Loading message="Loading discussion thread..." />
+      </div>
+    )
   }
 
   return (
-    <div className="h-full flex flex-col">
-      <div className="flex-1 min-h-0">
-        <Chat
-          title=""
-          messages={isTyping 
-            ? [...messages, {
-                id: 'typing',
-                sender: member.name,
-                text: '...',
-                timestamp: new Date(),
-                isCurrentUser: false
-              }]
-            : messages
-          }
-          onSendMessage={handleSendMessage}
-          onClose={onClose}
-          className="h-full border-0"
-        />
+    <div className="flex flex-col h-full bg-zinc-900 text-white border-0 rounded-lg overflow-hidden">
+      {/* Header */}
+      <div className="flex items-center justify-between p-4 border-b border-zinc-800">
+        <div className="flex items-center gap-2">
+          <h3 className="font-medium text-zinc-100">
+            Chat with {member.name}
+          </h3>
+        </div>
+      </div>
+
+      {/* Messages area */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {chatMessages.map((msg, index) => {
+          const messageMember = getMemberInfo(msg.member_id);
+          if (!messageMember) return null;
+
+          return (
+            <div key={index} className="flex items-start gap-3">
+              <img 
+                src={messageMember.picture} 
+                alt={messageMember.name}
+                className="w-8 h-8 rounded-full object-cover border border-zinc-700"
+              />
+              <div className="flex-1">
+                <div className="font-medium text-zinc-200 mb-1">{messageMember.name}</div>
+                <div className="text-zinc-300 text-sm">{msg.message}</div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Input area */}
+      <div className="p-4 border-t border-zinc-800 bg-zinc-900/50">
+        <div className="flex items-center gap-2">
+          <div className="flex-1 flex items-center gap-2 bg-zinc-800/50 rounded-lg px-4 py-2 text-sm">
+            <span className="text-zinc-400">What do you think about this</span>
+            <DropdownMenu>
+              <DropdownMenuTrigger className="inline-flex items-center justify-center size-8 rounded-full hover:bg-zinc-700/50 transition-colors overflow-hidden border border-zinc-700">
+                {selectedMember ? (
+                  <img 
+                    src={selectedMember.picture} 
+                    alt={selectedMember.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <ChevronDown className="h-4 w-4 text-zinc-400" />
+                )}
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="bg-zinc-800 border-zinc-700">
+                {members.map((m) => (
+                  <DropdownMenuItem
+                    key={m.id}
+                    onClick={() => setSelectedMember(m)}
+                    className="flex items-center gap-2 text-zinc-100 hover:bg-zinc-700 cursor-pointer"
+                  >
+                    <img 
+                      src={m.picture} 
+                      alt={m.name}
+                      className="size-8 rounded-full object-cover border border-zinc-700"
+                    />
+                    <span>{m.name}</span>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <span className="text-zinc-400">?</span>
+          </div>
+          <button
+            className="p-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={!selectedMember}
+              onClick={() => handleSubmit(selectedMember, member, selectedEntry?.user_input || '', selectedEntry?.member_output || '', selectedEntry?.id || '')}
+          >
+            <ArrowUp className="h-5 w-5" />
+          </button>
+        </div>
       </div>
     </div>
   )
-}
-
-type Message = {
-  id: string
-  sender: string
-  text: string
-  timestamp: Date
-  isCurrentUser?: boolean
 }

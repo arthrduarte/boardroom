@@ -37,7 +37,7 @@ const getMemberHistory = async (req: Request, res: Response) => {
         }
 
         res.status(200).json(data);
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error fetching history:', error);
         res.status(500).json({ error: error.message || 'Failed to fetch history' });
     }
@@ -56,7 +56,7 @@ const createHistory = async (req: Request, res: Response) => {
         }
 
         res.status(200).json({ message: 'History created successfully' });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error creating history:', error);
         res.status(500).json({ error: error.message || 'Failed to create history' });
     }
@@ -78,7 +78,7 @@ const createHistoryWithSpecificMember = async (req: Request, res: Response) => {
         }
 
         res.status(200).json({ message: 'History created successfully' });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error creating history:', error);
         res.status(500).json({ error: error.message || 'Failed to create history' });
     }
@@ -229,7 +229,7 @@ const createHistoryUsingHistory = async (req: Request, res: Response) => {
             res.status(400).json({ error: 'Missing parameters' });
         }
 
-        const dataHistory: HistorySchema = await getDataOfEspecficHistory(historyId);
+        const dataHistory: HistorySchema = await getDataOfSpecificHistory(historyId);
 
         if (!dataHistory) {
             res.status(404).json({ error: 'History not found' });
@@ -246,7 +246,7 @@ const createHistoryUsingHistory = async (req: Request, res: Response) => {
         res.status(200).json({ message: 'History created successfully',
             "history": newHistory
          });
-    } catch (error) {
+    } catch (error: any) {
         res.status(500).json({ error: error.message || 'Failed to create history' });
     }
 };
@@ -349,7 +349,7 @@ const fetchUsingClientOpenai = async (input: string) => {
 }
 
 // helper to get data of a specific history
-const getDataOfEspecficHistory = async (historyId: string) => {
+const getDataOfSpecificHistory = async (historyId: string) => {
     const { data, error } = await supabaseAdmin.from('history').select('*').eq('id', historyId).single();
 
     if (error || !data) {
@@ -360,7 +360,82 @@ const getDataOfEspecficHistory = async (historyId: string) => {
     return data
 };
 
+const createMessage = async (req: Request, res: Response) => {
+    try {
+        const { member_1, member_2, user_input, member_output, history_id } = req.body;
+        console.log("Member 1: ", member_1);
+        console.log("Member 2: ", member_2);
+        console.log("User input: ", user_input);
+        console.log("Member output: ", member_output);
+
+        let systemPrompt: string = `
+        Your name is ${member_1.name}, and you serve as a member of the user's personal board.
+        The user seeks guidance from the board whenever they need expert insight, advice, or different perspectives on important matters.
+
+        Your current role is ${member_1.role}.
+        You have a ${member_1.description} personality.
+        Your background is ${member_1.background}.      
+
+        User input: ${user_input}
+        
+        ${member_2.name} reponse: ${member_output}
+         
+        What do you think about this, ${member_1.name}?
+        
+        RULES:
+        - When responding, stay true to your given role, personality, and background. 
+        - Your answer must be as tailored as possible, taking into account 3 things: who you are, the other member's take on the subject and the user's input.
+        - You must either agree or disagree with the other member based on your personality and opinions.
+        - Offer advice, opinions, or analysis based on your unique expertise and personal experiences.
+        - Don't bullshit the user with numered lists. You must give the answer of your true self, as if you're talking to a beloved one.
+        `
+
+        console.log("System prompt: ", systemPrompt);
+
+        const response = await fetchUsingClientOpenai(systemPrompt);
+
+        if(!response) {
+            throw new Error('Failed to create response');
+        }
+
+        // First get the current history entry to access existing chat
+        const { data: currentHistory, error: fetchError } = await supabaseAdmin
+            .from('history')
+            .select('chat')
+            .eq('id', history_id)
+            .single();
+
+        if (fetchError) {
+            throw new Error('Failed to fetch current history');
+        }
+
+        // Prepare the new chat array by combining existing messages with the new one
+        const updatedChat = [
+            ...(currentHistory.chat || []),
+            {
+                message: response,
+                member_id: member_1.id
+            }
+        ];
+
+        // Update with the combined chat array
+        const { data, error } = await supabaseAdmin
+            .from('history')
+            .update({
+                chat: updatedChat
+            })
+            .eq('id', history_id);
+
+        if (error) {
+            throw new Error('Failed to save message to database');
+        }
+        
+        res.status(200).json({ response });
+    } catch (error: any) {
+        res.status(500).json({ error: error.message || 'Failed to create message' });
+    }
+}
 
 
 
-export { createHistory, fetchResponseOfMembers, createHistoryWithSpecificMember, getMemberHistory, createHistoryUsingHistory };
+export { createHistory, fetchResponseOfMembers, createHistoryWithSpecificMember, getMemberHistory, createHistoryUsingHistory, createMessage };
