@@ -396,15 +396,31 @@ const createMessage = async (req: Request, res: Response) => {
             throw new Error('Failed to create response');
         }
 
+        // First get the current history entry to access existing chat
+        const { data: currentHistory, error: fetchError } = await supabaseAdmin
+            .from('history')
+            .select('chat')
+            .eq('id', history_id)
+            .single();
+
+        if (fetchError) {
+            throw new Error('Failed to fetch current history');
+        }
+
+        // Prepare the new chat array by combining existing messages with the new one
+        const updatedChat = [
+            ...(currentHistory.chat || []),
+            {
+                message: response,
+                member_id: member_1.id
+            }
+        ];
+
+        // Update with the combined chat array
         const { data, error } = await supabaseAdmin
             .from('history')
             .update({
-                chat: [
-                    {
-                        message: response,
-                        member_id: member_1.id
-                    }
-                ]
+                chat: updatedChat
             })
             .eq('id', history_id);
 
