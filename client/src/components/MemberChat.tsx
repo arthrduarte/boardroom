@@ -70,6 +70,8 @@ export const MemberChat = ({ member, userId, selectedEntry }: MemberChatProps) =
   useEffect(() => {
     if (selectedEntry?.chat) {
       setChatMessages(selectedEntry.chat);
+    } else {
+      setChatMessages([]);
     }
   }, [selectedEntry]);
 
@@ -108,7 +110,6 @@ export const MemberChat = ({ member, userId, selectedEntry }: MemberChatProps) =
         message: data.response,
         member_id: selectedMember.id
       }]);
-      console.log('Message submitted:', data);
       toast.success('Message sent successfully');
     } catch (err) {
       console.error('Error submitting message:', err);
@@ -133,7 +134,7 @@ export const MemberChat = ({ member, userId, selectedEntry }: MemberChatProps) =
       <div className="flex items-center justify-between p-4 border-b border-zinc-800">
         <div className="flex items-center gap-2">
           <h3 className="font-medium text-zinc-100">
-            Chat
+            Chat with {member.name}
           </h3>
         </div>
       </div>
