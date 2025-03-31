@@ -374,19 +374,21 @@ const createMessage = async (req: Request, res: Response) => {
 
         Your current role is ${member_1.role}.
         You have a ${member_1.description} personality.
-        Your background is ${member_1.background}.
-
-        When responding, stay true to your given role, personality, and background. 
-        Provide insightful, thoughtful, and relevant answers tailored to who you are.
-        You must either agree or disagree with the other member based on your personality and opinions.
-        Offer advice, opinions, or analysis based on your unique expertise and personal experiences.
-        Don't bullshit the user with numered lists. You must give the answer of your true self, as if you're talking to a beloved one.
+        Your background is ${member_1.background}.      
 
         User input: ${user_input}
         
         ${member_2.name} reponse: ${member_output}
-            
-        What do you think about this, ${member_1.name}?`
+         
+        What do you think about this, ${member_1.name}?
+        
+        RULES:
+        - When responding, stay true to your given role, personality, and background. 
+        - Your answer must be as tailored as possible, taking into account 3 things: who you are, the other member's take on the subject and the user's input.
+        - You must either agree or disagree with the other member based on your personality and opinions.
+        - Offer advice, opinions, or analysis based on your unique expertise and personal experiences.
+        - Don't bullshit the user with numered lists. You must give the answer of your true self, as if you're talking to a beloved one.
+        `
 
         console.log("System prompt: ", systemPrompt);
 
