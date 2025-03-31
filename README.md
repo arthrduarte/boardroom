@@ -116,6 +116,8 @@ The Boardroom is an innovative platform that simulates a virtual boardroom envir
 ### 🚀 Live Application
 The application is available at  **→**  **[boardroom.io/](https://boardroom-app-f54ca20f8301.herokuapp.com/)**
 
+
+<br><br>
 ---
 <br><br>
 
