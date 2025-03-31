@@ -3,6 +3,8 @@ import { ScrollArea } from "./ui/scroll-area";
 import { useEffect, useState } from "react";
 import { Loading } from "./ui/loading";
 import { MemberChat } from './MemberChat';
+import { Button } from "./ui/button";
+import { Minimize2, X, MessageSquare, Users } from "lucide-react";
 
 interface HistoryEntry {
     id: string;
@@ -34,13 +36,14 @@ export default function MemberProfile({
     image,
     userId,
     memberId,
-    member
 }: MemberProfileProps) {
     const [history, setHistory] = useState<HistoryEntry[]>([]);
     const [selectedEntry, setSelectedEntry] = useState<HistoryEntry | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [isChatOpen, setIsChatOpen] = useState(false);
+    const [isChatMinimized, setIsChatMinimized] = useState(false);
+    const [activeChatId, setActiveChatId] = useState<string | null>(null);
 
     useEffect(() => {
         if (open && userId && memberId) {
@@ -77,10 +80,24 @@ export default function MemberProfile({
         });
     };
 
+    const handleStartChat = () => {
+        setIsChatOpen(true);
+        setIsChatMinimized(false);
+        setActiveChatId(`new-${Date.now()}`);
+    };
+
+    const handleResumeChat = (entry: HistoryEntry) => {
+        setSelectedEntry(entry);
+        setIsChatOpen(true);
+        setIsChatMinimized(false);
+        setActiveChatId(entry.id);
+    };
+
     return (
         <>
+            {/* Main Profile Dialog */}
             <Dialog open={open} onOpenChange={onOpenChange}>
-                <DialogContent className="min-w-[900px] max-w-[80vw] h-[80vh] flex p-0 gap-0 rounded-lg bg-zinc-900 text-white border border-zinc-800">
+                <DialogContent className="min-w-[1200px] max-w-[90vw] h-[80vh] flex p-0 gap-0 rounded-lg bg-zinc-900 text-white border border-zinc-800">
                     {/* Sidebar - History */}
                     <div className="w-[300px] border-r border-zinc-800 flex flex-col h-full">
                         <DialogHeader className="p-6 border-b border-zinc-800 flex-shrink-0">
@@ -120,15 +137,28 @@ export default function MemberProfile({
                                                     <div 
                                                         key={entry.id}
                                                         onClick={() => setSelectedEntry(entry)}
-                                                        className={`cursor-pointer p-4 rounded-lg transition-colors border
+                                                        className={`group cursor-pointer p-4 rounded-lg transition-colors border
                                                             ${selectedEntry?.id === entry.id 
                                                                 ? 'bg-zinc-800 border-zinc-600' 
                                                                 : 'border-zinc-800 hover:bg-zinc-800/50'}`}
                                                     >
-                                                        <p className="text-sm text-zinc-400">{formatDate(entry.created_at)}</p>
-                                                        <p className="text-sm text-zinc-300 mt-2 line-clamp-2">
-                                                            {entry.user_input}
-                                                        </p>
+                                                        <div className="flex justify-between items-start">
+                                                            <div>
+                                                                <p className="text-sm text-zinc-400">{formatDate(entry.created_at)}</p>
+                                                                <p className="text-sm text-zinc-300 mt-2 line-clamp-2">
+                                                                    {entry.user_input}
+                                                                </p>
+                                                            </div>
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleResumeChat(entry);
+                                                                }}
+                                                                className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-full hover:bg-zinc-700"
+                                                            >
+                                                                <MessageSquare className="w-4 h-4 text-zinc-400" />
+                                                            </button>
+                                                        </div>
                                                     </div>
                                                 ))}
                                             </div>
@@ -137,19 +167,20 @@ export default function MemberProfile({
                                 </div>
                             </ScrollArea>
                         </div>
-                        <div className="p-4 px-15 border-t border-zinc-800">
-                            <button
-                                onClick={() => setIsChatOpen(true)}
-                                className="flex items-center justify-center bg-zinc-800/50 text-white py-2.5 px-8 rounded-lg border border-zinc-700 
-                                transition-all duration-200 hover:bg-zinc-700 hover:border-zinc-600"
+                        <div className="p-4 border-t border-zinc-800">
+                            <Button
+                                onClick={handleStartChat}
+                                variant="default"
+                                className="w-full"
                             >
+                                <MessageSquare className="w-4 h-4 mr-2" />
                                 Start New Chat
-                            </button>
+                            </Button>
                         </div>
                     </div>
 
                     {/* Main Content */}
-                    <div className="flex-1 flex flex-col h-full">
+                    <div className="flex-1 flex flex-col h-full border-r border-zinc-800">
                         <div className="border-b border-zinc-800 p-6 flex-shrink-0">
                             <h2 className="text-2xl font-semibold">Discussion Details</h2>
                             {selectedEntry && (
@@ -182,7 +213,7 @@ export default function MemberProfile({
                                             </div>
                                         </div>
                                     ) : (
-                                        <div className="text-center text-zinc-400">
+                                        <div className="text-center text-zinc-400 mt-8">
                                             {isLoading ? <Loading message="Loading discussion..." /> : 'Select a discussion to view details'}
                                         </div>
                                     )}
@@ -190,14 +221,63 @@ export default function MemberProfile({
                             </ScrollArea>
                         </div>
                     </div>
+
+                    {/* Chat Section */}
+                    {isChatOpen && (
+                        <div className="w-[400px] flex flex-col h-full bg-zinc-900">
+                            <div className="flex items-center justify-between p-6 border-b border-zinc-800">
+                                <h3 className="font-medium text-zinc-100">Chat with {name}</h3>
+                                <div className="flex items-center gap-6">
+                                    <button 
+                                        className="p-1.5 rounded-full hover:bg-zinc-800 transition-colors"
+                                        title="Add member to chat"
+                                    >
+                                        <Users className="w-4 h-4 text-zinc-400" />
+                                    </button>
+                                </div>
+                            </div>
+                            <div className="flex-1 min-h-0">
+                                <MemberChat
+                                    member={{
+                                        id: memberId,
+                                        name: name,
+                                        avatar: image
+                                    }}
+                                    isOpen={isChatOpen}
+                                    onClose={() => setIsChatOpen(false)}
+                                    key={activeChatId}
+                                />
+                            </div>
+                        </div>
+                    )}
                 </DialogContent>
             </Dialog>
 
-            <MemberChat
-                member={member}
-                isOpen={isChatOpen}
-                onClose={() => setIsChatOpen(false)}
-            />
+            {/* Minimized Chat Button */}
+            {isChatMinimized && (
+                <div 
+                    className="fixed bottom-4 right-4 z-50"
+                >
+                    <div 
+                        className="bg-zinc-800 border border-zinc-700 rounded-lg p-3 cursor-pointer hover:bg-zinc-700 transition-colors flex items-center justify-between shadow-lg"
+                        onClick={() => setIsChatMinimized(false)}
+                    >
+                        <div className="flex items-center gap-2">
+                            <MessageSquare className="w-4 h-4 text-indigo-400" />
+                            <span className="text-sm font-medium">Chat with {name}</span>
+                        </div>
+                        <button 
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setIsChatOpen(false);
+                            }}
+                            className="p-1 rounded-full hover:bg-zinc-600"
+                        >
+                            <X className="w-3 h-3 text-zinc-400" />
+                        </button>
+                    </div>
+                </div>
+            )}
         </>
     );
 }

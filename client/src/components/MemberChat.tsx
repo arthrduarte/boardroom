@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Chat } from '@/components/ui/chat'
 
 interface MemberChatProps {
-  member: {
+  member?: {  
     id: string
     name: string
     avatar?: string
@@ -15,14 +15,15 @@ export const MemberChat = ({ member, isOpen, onClose }: MemberChatProps) => {
   const [messages, setMessages] = useState<Message[]>([])
   const [isTyping, setIsTyping] = useState(false)
 
+  if (!member || !isOpen) return null
+
   useEffect(() => {
-    if (isOpen && messages.length === 0) {
-      // Mensagem inicial com atraso para simular digitação
+    if (messages.length === 0) {
       setIsTyping(true)
       setTimeout(() => {
         setMessages([{
           id: '1',
-          sender: member.name,
+          sender: member.name, 
           text: `Hi there! I'm ${member.name}. What would you like to discuss?`,
           timestamp: new Date(),
           isCurrentUser: false
@@ -30,10 +31,9 @@ export const MemberChat = ({ member, isOpen, onClose }: MemberChatProps) => {
         setIsTyping(false)
       }, 1500)
     }
-  }, [isOpen])
+  }, [isOpen, member, messages.length])
 
   const handleSendMessage = (text: string) => {
-    // Mensagem do usuário
     const userMessage: Message = {
       id: Date.now().toString(),
       sender: 'You',
@@ -44,7 +44,6 @@ export const MemberChat = ({ member, isOpen, onClose }: MemberChatProps) => {
     setMessages(prev => [...prev, userMessage])
     setIsTyping(true)
 
-    // Simular resposta após 1-3s
     setTimeout(() => {
       const reply: Message = {
         id: Date.now().toString() + '-reply',
@@ -81,24 +80,27 @@ export const MemberChat = ({ member, isOpen, onClose }: MemberChatProps) => {
            `Interesting point about ${input}. Let me think...`
   }
 
-  if (!isOpen) return null
-
   return (
-    <Chat
-      title={member.name}
-      messages={isTyping 
-        ? [...messages, {
-            id: 'typing',
-            sender: member.name,
-            text: '...',
-            timestamp: new Date(),
-            isCurrentUser: false
-          }]
-        : messages
-      }
-      onSendMessage={handleSendMessage}
-      onClose={onClose}
-    />
+    <div className="h-full flex flex-col">
+      <div className="flex-1 min-h-0">
+        <Chat
+          title=""
+          messages={isTyping 
+            ? [...messages, {
+                id: 'typing',
+                sender: member.name,
+                text: '...',
+                timestamp: new Date(),
+                isCurrentUser: false
+              }]
+            : messages
+          }
+          onSendMessage={handleSendMessage}
+          onClose={onClose}
+          className="h-full border-0"
+        />
+      </div>
+    </div>
   )
 }
 

@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils"
-import { ArrowUp, Plus } from "lucide-react"
+import { ArrowUp, Plus, X } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 
 interface ChatProps {
@@ -28,7 +28,7 @@ export const Chat = ({
   const [inputValue, setInputValue] = useState("")
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  // Auto-scroll para a última mensagem
+  // Auto-scroll to last message
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
@@ -43,31 +43,35 @@ export const Chat = ({
 
   return (
     <div className={cn(
-      "fixed inset-0 z-50 flex flex-col bg-zinc-50 dark:bg-zinc-900",
+      "flex flex-col h-full bg-zinc-900 text-white border border-zinc-800 rounded-lg overflow-hidden",
       className
     )}>
-      {/* Header  */}
-      <div className="flex items-center justify-between p-4 border-b border-zinc-200 dark:border-zinc-800">
-        <button 
-          onClick={onClose}
-          className="p-1 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800"
-        >
-        </button>
-        
-        <h3 className="font-medium text-zinc-900 dark:text-white">{title}</h3>
-        
-        {onNewChat && (
+      {/* Header */}
+      <div className="flex items-center justify-between p-4 border-b border-zinc-800">
+        <div className="flex items-center gap-2">
           <button 
-            onClick={onNewChat}
-            className="p-1 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800"
+            onClick={onClose}
+            className="p-1.5 rounded-full hover:bg-zinc-800 transition-colors"
           >
-            <Plus className="w-5 h-5 text-zinc-600 dark:text-zinc-400" />
+            <X className="w-4 h-4 text-zinc-400" />
           </button>
-        )}
+          <h3 className="font-medium text-zinc-100">{title}</h3>
+        </div>
+        
+        <div className="flex items-center gap-6">
+          {onNewChat && (
+            <button 
+              onClick={onNewChat}
+              className="p-1.5 rounded-full hover:bg-zinc-800 transition-colors"
+            >
+              <Plus className="w-5 h-5 text-zinc-400" />
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* Área de mensagens */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-6">
+      {/* Messages area */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map(msg => (
           <div 
             key={msg.id} 
@@ -77,20 +81,26 @@ export const Chat = ({
             )}
           >
             <div className={cn(
-              "max-w-[85%] p-4 rounded-2xl",
+              "max-w-[85%] p-3 rounded-lg",
               msg.isCurrentUser 
-                ? "bg-indigo-500 text-white rounded-br-none" 
-                : "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white rounded-bl-none"
+                ? "bg-indigo-600 text-white rounded-br-none" 
+                : "bg-zinc-800 text-zinc-100 rounded-bl-none"
             )}>
+              {!msg.isCurrentUser && (
+                <p className="text-xs font-medium text-indigo-400 mb-1">{msg.sender}</p>
+              )}
               <p className="text-sm">{msg.text}</p>
+              <p className="text-xs mt-1 opacity-60 text-right">
+                {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </p>
             </div>
           </div>
         ))}
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input */}
-      <div className="p-4 border-t border-zinc-200 dark:border-zinc-800">
+      {/* Input area */}
+      <div className="p-4 border-t border-zinc-800 bg-zinc-900/50">
         <form 
           onSubmit={handleSubmit}
           className="relative"
@@ -99,17 +109,17 @@ export const Chat = ({
             type="text"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            placeholder="Message..."
-            className="w-full p-4 pr-12 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            placeholder="Type a message..."
+            className="w-full p-3 pr-12 bg-zinc-800 border border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent placeholder-zinc-500 text-zinc-100"
           />
           <button
             type="submit"
             disabled={!inputValue.trim()}
             className={cn(
-              "absolute right-2 top-2 p-2 rounded-full",
+              "absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full transition-colors",
               inputValue.trim() 
-                ? "bg-indigo-500 text-white hover:bg-indigo-600" 
-                : "bg-zinc-100 dark:bg-zinc-700 text-zinc-400"
+                ? "bg-indigo-600 text-white hover:bg-indigo-700" 
+                : "bg-zinc-700 text-zinc-500 cursor-not-allowed"
             )}
           >
             <ArrowUp className="w-4 h-4" />
