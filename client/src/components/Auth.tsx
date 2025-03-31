@@ -57,8 +57,15 @@ export default function Auth() {
       {/* Conteúdo do formulário */}
       <div className="bg-zinc-900 flex justify-center items-center min-h-screen p-4 relative z-10">
         <div className="w-full max-w-md bg-zinc-800 rounded-lg shadow-md p-8">
+          <div className="flex justify-center mb-6">
+            <img 
+              src="./src/assets/logo.png" 
+              alt="Boardroom Logo" 
+              className="w-32 h-32 object-contain"
+            />
+          </div>
           <h1 className="text-2xl font-bold text-center text-neutral-50 mb-8">
-            Welcome to AI War Room
+            Welcome to Boardroom
           </h1>
           <div className="flex gap-2 mb-6">
             <button
@@ -66,7 +73,7 @@ export default function Auth() {
               className={`flex-1 py-2 px-4 rounded-md transition-colors ${
                 !isSignUp
                   ? 'bg-neutral-900 text-white'
-                  : 'bg-neutral-900 text-white hover:bg-gray-200'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
               Sign In

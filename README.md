@@ -43,6 +43,7 @@
 <br>
 
 ---
+
 ## Table of Contents
 
 1. [Overview](#overview)
@@ -60,12 +61,13 @@
 
 ---
 <br><br>
+
 ## Overview
 
 The Boardroom is an innovative platform that simulates a virtual boardroom environment where users can interact with AI-powered board members. The platform combines advanced AI technology with a modern, intuitive interface to create an immersive experience for business discussions and decision-making processes.
 
 ---
-<br><br>
+
 ## Features
 
 - 🤖 **AI-Powered Board Members**: Interact with realistic AI personalities representing different board members
@@ -78,6 +80,7 @@ The Boardroom is an innovative platform that simulates a virtual boardroom envir
 
 ---
 <br><br>
+
 ## Project Architecture & Structure
 
 <div style="display: flex; justify-content: center;">
@@ -106,8 +109,6 @@ The Boardroom is an innovative platform that simulates a virtual boardroom envir
         └── package.json
 ```
 
-
-
 ---
 <br><br>
 ## Getting Started
@@ -115,8 +116,6 @@ The Boardroom is an innovative platform that simulates a virtual boardroom envir
 ### 🚀 Live Application
 The application is available at  **→**  **[boardroom.io/](https://boardroom-app-f54ca20f8301.herokuapp.com/)**
 
-
-<br><br>
 ---
 <br><br>
 
@@ -194,6 +193,7 @@ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 
 ---
 <br><br>
+
 ## Roadmap
 
 - [X] **Initial Setup**: Project structure and basic configuration
@@ -208,6 +208,7 @@ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 
 ---
 <br><br>
+
 ## Contributing
 
 We welcome contributions!
@@ -220,12 +221,14 @@ We welcome contributions!
 
 ---
 <br><br>
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](https://mit-license.org/) file for details.
 
 ---
 <br><br>
+
 ## Acknowledgments
 
 - Thanks to all contributors who have helped shape The Boardroom;

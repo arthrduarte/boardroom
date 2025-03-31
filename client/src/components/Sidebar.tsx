@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { supabase } from '../lib/supabaseClient'
 
 export function Sidebar() {
   return (
@@ -29,7 +30,32 @@ export function Sidebar() {
               <span className="font-medium">Edit Members</span>
             </Link>
           </div>
+          {/* Sidebar Footer */}
+          <div className=""> 
+            <Link 
+              to="/settings" 
+              className="flex items-center px-4 py-3 text-zinc-300 hover:bg-zinc-700/50 rounded-lg transition-colors group"
+            >
+              <span className="font-medium">Settings</span>
+            </Link>
+          </div>
         </div>
+      </div>
+
+      {/* Sticky Footer */}
+      <div className="border-t border-zinc-700 p-4 mt-auto">
+        <button 
+          onClick={() => {
+            supabase.auth.signOut();
+            console.log('Logout clicked')
+          }}
+          className="cursor-pointer flex items-center w-full px-4 py-3 text-zinc-300 hover:bg-red-500/50 rounded-lg transition-colors group"
+        >
+          <svg className="w-5 h-5 mr-3 text-zinc-400 group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+          </svg>
+          <span className="font-medium">Logout</span>
+        </button>
       </div>
     </nav>
   )

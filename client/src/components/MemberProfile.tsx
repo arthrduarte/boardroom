@@ -90,16 +90,16 @@ export default function MemberProfile({
         <>
             {/* Main Profile Dialog */}
             <Dialog open={open} onOpenChange={onOpenChange}>
-                <DialogContent className="min-w-[1200px] max-w-[90vw] h-[80vh] flex p-0 gap-0 rounded-lg bg-zinc-900 text-white border border-zinc-800">
+                <DialogContent className="w-[95vw] max-h-[90vh] lg:min-w-[800px] xl:min-w-[1000px] 2xl:min-w-[1200px] h-[90vh] sm:h-[80vh] flex flex-col lg:flex-row p-0 gap-0 rounded-lg bg-zinc-900 text-white border border-zinc-800">
                     {/* Sidebar - History */}
-                    <div className="w-[300px] border-r border-zinc-800 flex flex-col h-full">
-                        <DialogHeader className="p-6 border-b border-zinc-800 flex-shrink-0">
-                            <div className="flex items-center gap-4">
-                                <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-zinc-700">
+                    <div className="w-full lg:w-[250px] xl:w-[300px] border-b lg:border-b-0 lg:border-r border-zinc-800 flex flex-col h-[30vh] lg:h-full">
+                        <DialogHeader className="p-4 sm:p-6 border-b border-zinc-800 flex-shrink-0">
+                            <div className="flex items-center gap-3 sm:gap-4">
+                                <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full overflow-hidden border-2 border-zinc-700">
                                     <img src={image} alt={name} className="w-full h-full object-cover" />
                                 </div>
                                 <div className="space-y-1">
-                                    <DialogTitle className="text-xl font-semibold tracking-tight">{name}</DialogTitle>
+                                    <DialogTitle className="text-lg sm:text-xl font-semibold tracking-tight">{name}</DialogTitle>
                                     <div className="flex flex-wrap gap-1.5">
                                         {role.map((r, index) => (
                                             <span 
@@ -115,7 +115,7 @@ export default function MemberProfile({
                         </DialogHeader>
                         <div className="flex-1 min-h-0">
                             <ScrollArea className="h-full">
-                                <div className="p-6">
+                                <div className="p-4 sm:p-6">
                                     {isLoading ? (
                                         <Loading message="Loading history..." />
                                     ) : error ? (
@@ -130,7 +130,7 @@ export default function MemberProfile({
                                                     <div 
                                                         key={entry.id}
                                                         onClick={() => setSelectedEntry(entry)}
-                                                        className={`group cursor-pointer p-4 rounded-lg transition-colors border
+                                                        className={`group cursor-pointer p-3 sm:p-4 rounded-lg transition-colors border
                                                             ${selectedEntry?.id === entry.id 
                                                                 ? 'bg-zinc-800 border-zinc-600' 
                                                                 : 'border-zinc-800 hover:bg-zinc-800/50'}`}
@@ -151,28 +151,28 @@ export default function MemberProfile({
                                 </div>
                             </ScrollArea>
                         </div>
-                        <div className="p-4 border-t border-zinc-800">
+                        <div className="p-3 sm:p-4 border-t border-zinc-800">
                             <span className="text-xs text-zinc-500">Select a past discussion to view details.</span>
                         </div>
                     </div>
 
                     {/* Main Content */}
-                    <div className="flex-1 flex flex-col h-full border-r border-zinc-800">
-                        <div className="border-b border-zinc-800 p-6 flex-shrink-0">
-                            <h2 className="text-2xl font-semibold">Discussion Details</h2>
+                    <div className="flex-1 flex flex-col h-[40vh] lg:h-full border-b lg:border-b-0 lg:border-r border-zinc-800">
+                        <div className="border-b border-zinc-800 p-4 sm:p-6 flex-shrink-0">
+                            <h2 className="text-xl sm:text-2xl font-semibold">Discussion Details</h2>
                             {selectedEntry && (
                                 <p className="text-zinc-400 mt-1">{formatDate(selectedEntry.created_at)}</p>
                             )}
                         </div>
                         <div className="flex-1 min-h-0">
                             <ScrollArea className="h-full">
-                                <div className="p-6">
+                                <div className="p-4 sm:p-6">
                                     {selectedEntry ? (
-                                        <div className="space-y-8 max-w-3xl">
+                                        <div className="space-y-6 sm:space-y-8 max-w-3xl">
                                             <div className="space-y-4">
                                                 <div className="space-y-2">
-                                                    <h3 className="text-lg font-medium text-zinc-300">Your Question</h3>
-                                                    <p className="text-zinc-400 leading-relaxed">
+                                                    <h3 className="text-base sm:text-lg font-medium text-zinc-300">Your Question</h3>
+                                                    <p className="text-sm sm:text-base text-zinc-400 leading-relaxed">
                                                         {selectedEntry.user_input}
                                                     </p>
                                                 </div>
@@ -180,9 +180,9 @@ export default function MemberProfile({
                                             
                                             <div className="space-y-4">
                                                 <div className="space-y-2">
-                                                    <h3 className="text-lg font-medium text-zinc-300">{name}'s Response</h3>
+                                                    <h3 className="text-base sm:text-lg font-medium text-zinc-300">{name}'s Response</h3>
                                                     <div className="prose prose-invert max-w-none">
-                                                        <p className="text-zinc-400 leading-relaxed whitespace-pre-wrap">
+                                                        <p className="text-sm sm:text-base text-zinc-400 leading-relaxed whitespace-pre-wrap">
                                                             {selectedEntry.member_output}
                                                         </p>
                                                     </div>
@@ -200,7 +200,7 @@ export default function MemberProfile({
                     </div>
 
                     {/* Chat Section */}
-                    <div className="w-[400px] flex flex-col h-full bg-zinc-900">
+                    <div className="w-full lg:w-[300px] xl:w-[400px] flex flex-col h-[30vh] lg:h-full bg-zinc-900">
                         <MemberChat
                             member={member}
                             userId={userId}
