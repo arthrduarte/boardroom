@@ -68,6 +68,7 @@ export default function Main({ userId }: MainProps) {
               name={member.name}
               role={member.role}
               image={member.picture}
+              mode="profile"
             />
           ))}
         </div>

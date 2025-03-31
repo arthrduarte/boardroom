@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { Card, CardHeader, CardTitle } from "./ui/card";
+import { Card, CardHeader } from "./ui/card";
 import { ScrollArea } from "./ui/scroll-area";
 import { Loading } from "./ui/loading";
+import MemberCard from "./MemberCard";
 import {
     Sheet,
     SheetContent,
@@ -273,34 +274,18 @@ export default function EditMembers({ userId }: EditMembersProps) {
                         </CardHeader>
                     </Card>
                     {members.map((member) => (
-                        <Card 
+                        <MemberCard
                             key={member.id}
-                            className="bg-zinc-900 text-white cursor-pointer border border-zinc-800 transition-all duration-300 hover:border-zinc-600 hover:shadow-lg hover:shadow-zinc-900/20"
-                            onClick={() => handleMemberSelect(member)}
-                        >
-                            <CardHeader className="flex flex-row items-center gap-4 p-6">
-                                <div>
-                                    <img 
-                                        src={member.picture} 
-                                        alt={member.name} 
-                                        className="w-16 h-16 rounded-full overflow-hidden border-2 border-zinc-700 object-cover"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <CardTitle className="text-xl font-semibold">{member.name}</CardTitle>
-                                    <div className="flex flex-wrap gap-2">
-                                        {member.role.map((r, index) => (
-                                            <span 
-                                                key={index}
-                                                className="text-xs px-2.5 py-1 rounded-full bg-zinc-800 text-zinc-300"
-                                            >
-                                                {r}
-                                            </span>
-                                        ))}
-                                    </div>
-                                </div>
-                            </CardHeader>
-                        </Card>
+                            id={member.id}
+                            userId={userId}
+                            name={member.name}
+                            role={member.role}
+                            image={member.picture}
+                            description={member.description}
+                            background={member.background}
+                            mode="edit"
+                            onEdit={handleMemberSelect}
+                        />
                     ))}
                 </div>
             </div>

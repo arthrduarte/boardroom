@@ -123,7 +123,7 @@ export const MemberChat = ({ member, userId, selectedEntry }: MemberChatProps) =
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <Loading message="Loading discussion thread..." />
+        <Loading message="Member is thinking..." />
       </div>
     )
   }
