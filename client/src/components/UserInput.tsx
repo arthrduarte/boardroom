@@ -1,6 +1,7 @@
 import React from "react";
 import { useState } from "react"; 
 import { toast } from "sonner";
+import { API_BASE_URL } from "../config";
 
 interface UserInputProps {
   userId: string;
@@ -16,7 +17,7 @@ const UserInput = ({ userId }: UserInputProps) => {
 
     setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:3000/api/history', {
+      const response = await fetch(`${API_BASE_URL}/history`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

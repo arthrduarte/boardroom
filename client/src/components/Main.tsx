@@ -2,6 +2,7 @@ import MemberCard from './MemberCard'
 import UserInput from './UserInput'
 import { useState, useEffect } from 'react'
 import { Loading } from './ui/loading'
+import { API_BASE_URL } from '../config'
 
 interface Member {
     id: string;
@@ -22,7 +23,7 @@ export default function Main({ userId }: MainProps) {
   useEffect(() => {
     const fetchMembers = async () => {
       try {
-        const response = await fetch(`http://localhost:3000/api/members/user/${userId}`);
+        const response = await fetch(`${API_BASE_URL}/members/user/${userId}`);
         if (!response.ok) {
           throw new Error('Failed to fetch members');
         }
