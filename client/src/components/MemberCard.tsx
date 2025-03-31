@@ -57,6 +57,11 @@ export default function MemberCard({ id, userId, name, role, image, thoughts }: 
                 image={image}
                 userId={userId}
                 memberId={id}
+                member={{
+                    id,
+                    name,
+                    image
+                }}
             />
         </>
     )

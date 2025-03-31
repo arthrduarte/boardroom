@@ -41,7 +41,6 @@ interface EditMembersProps {
 
 export default function EditMembers({ userId }: EditMembersProps) {
     const [members, setMembers] = useState<Member[]>([]);
-    const [selectedMember, setSelectedMember] = useState<Member | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [editedMember, setEditedMember] = useState<Member | null>(null);
@@ -92,7 +91,6 @@ export default function EditMembers({ userId }: EditMembersProps) {
     };
 
     const handleMemberSelect = (member: Member) => {
-        setSelectedMember(member);
         setEditedMember(member);
         setIsSheetOpen(true);
     };
