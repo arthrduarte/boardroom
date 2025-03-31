@@ -3,6 +3,7 @@ import { ScrollArea } from "./ui/scroll-area";
 import { useEffect, useState } from "react";
 import { Loading } from "./ui/loading";
 import { MemberChat } from './MemberChat';
+import { API_BASE_URL } from "../config";
 
 interface HistoryEntry {
     id: string;
@@ -52,7 +53,7 @@ export default function MemberProfile({
         setIsLoading(true);
         setError(null);
         try {
-            const response = await fetch(`http://localhost:3000/api/history/member/${memberId}/user/${userId}`);
+            const response = await fetch(`${API_BASE_URL}/history/member/${memberId}/user/${userId}`);
             if (!response.ok) {
                 throw new Error('Failed to fetch history');
             }

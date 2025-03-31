@@ -18,6 +18,7 @@ import {
 } from "./ui/dropdown-menu";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "./ui/dialog";
+import { API_BASE_URL } from "../config";
 
 interface Picture {
     id: string;
@@ -57,7 +58,7 @@ export default function EditMembers({ userId }: EditMembersProps) {
         setIsLoading(true);
         setError(null);
         try {
-            const response = await fetch(`http://localhost:3000/api/members/user/${userId}`);
+            const response = await fetch(`${API_BASE_URL}/members/user/${userId}`);
             if (!response.ok) {
                 throw new Error('Failed to fetch members');
             }
@@ -75,7 +76,7 @@ export default function EditMembers({ userId }: EditMembersProps) {
         console.log("Fetching pictures...");
         setIsPicturesLoading(true);
         try {
-            const response = await fetch('http://localhost:3000/api/pictures');
+            const response = await fetch(`${API_BASE_URL}/pictures`);
             if (!response.ok) {
                 throw new Error('Failed to fetch pictures');
             }
@@ -126,7 +127,7 @@ export default function EditMembers({ userId }: EditMembersProps) {
             let response;
             if (editedMember.id === 'new') {
                 // Create new member
-                response = await fetch('http://localhost:3000/api/members', {
+                response = await fetch(`${API_BASE_URL}/members`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -142,7 +143,7 @@ export default function EditMembers({ userId }: EditMembersProps) {
                 });
             } else {
                 // Update existing member
-                response = await fetch(`http://localhost:3000/api/members/${editedMember.id}`, {
+                response = await fetch(`${API_BASE_URL}/members/${editedMember.id}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -186,7 +187,7 @@ export default function EditMembers({ userId }: EditMembersProps) {
         if (!editedMember || editedMember.id === 'new') return;
 
         try {
-            const response = await fetch(`http://localhost:3000/api/members/${editedMember.id}`, {
+            const response = await fetch(`${API_BASE_URL}/members/${editedMember.id}`, {
                 method: 'DELETE',
             });
 
