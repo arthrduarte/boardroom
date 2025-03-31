@@ -76,7 +76,7 @@ const UserInput = ({ userId }: UserInputProps) => {
   };
 
   return (
-    <div className="w-[75%] mx-auto bg-zinc-900 rounded-lg border border-zinc-800 transition-all duration-300 hover:border-zinc-600 hover:shadow-lg hover:shadow-zinc-900/20">
+    <div className="w-full md:w-[85%] lg:w-[75%] mx-auto bg-zinc-900 rounded-lg border border-zinc-800 transition-all duration-300 hover:border-zinc-600 hover:shadow-lg hover:shadow-zinc-900/20">
       <div className="p-6 border-b border-zinc-800">
         <h1 className="text-xl font-semibold text-white">Share with Your Board</h1>
         <p className="mt-2 text-sm text-zinc-400">
@@ -97,7 +97,7 @@ const UserInput = ({ userId }: UserInputProps) => {
           />
         </div>
 
-        <div className="flex gap-4">
+        <div className="flex flex-col sm:flex-row gap-4">
           <button
             type="submit"
             disabled={isLoading || !inputValue.trim()}

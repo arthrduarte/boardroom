@@ -17,20 +17,20 @@ export default function MemberCard({ id, userId, name, role, image, thoughts }: 
     return (
         <>
             <Card 
-                className="bg-zinc-900 text-white w-[350px] p-0 cursor-pointer border border-zinc-800 transition-all duration-300 hover:border-zinc-600 hover:shadow-lg hover:shadow-zinc-900/20 hover:transform hover:scale-[1.02]"
+                className="bg-zinc-900 text-white cursor-pointer border border-zinc-800 transition-all duration-300 hover:border-zinc-600 hover:shadow-lg hover:shadow-zinc-900/20"
                 onClick={() => setIsProfileOpen(true)}
             >
-                <CardHeader className="flex flex-row items-center gap-4 p-6">
-                    <div>
+                <CardHeader className="flex flex-row">
+                    <div className="w-1/3">
                         <img 
                             src={image} 
                             alt={name} 
-                            className="w-16 h-16 rounded-full overflow-hidden border-2 border-zinc-700 object-cover"
+                            className="w-full h-full border-2 rounded-lg border-zinc-700 object-cover"
                         />
                     </div>
-                    <div className="space-y-2">
-                        <CardTitle className="text-xl font-semibold">{name}</CardTitle>
-                        <div className="flex flex-wrap gap-2">
+                    <div className="w-2/3 ml-4">
+                        <CardTitle className="text-lg sm:text-xl font-semibold mb-4">{name}</CardTitle>
+                        <div className="flex flex-wrap gap-1.5 sm:gap-2">
                             {role.map((r, index) => (
                                 <span 
                                     key={index}
@@ -42,11 +42,6 @@ export default function MemberCard({ id, userId, name, role, image, thoughts }: 
                         </div>
                     </div>
                 </CardHeader>
-                <CardContent className="px-6 pb-6 pt-0">
-                    <p className="text-zinc-400 text-sm">
-                        {thoughts || "Member thoughts come here..."}
-                    </p>
-                </CardContent>
             </Card>
 
             <MemberProfile
@@ -60,7 +55,7 @@ export default function MemberCard({ id, userId, name, role, image, thoughts }: 
                 member={{
                     id,
                     name,
-                    image
+                    picture: image
                 }}
             />
         </>
