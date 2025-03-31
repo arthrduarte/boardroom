@@ -49,6 +49,7 @@ export default function EditMembers({ userId }: EditMembersProps) {
     const [pictures, setPictures] = useState<Picture[]>([]);
     const [isPicturesLoading, setIsPicturesLoading] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [roleInputValue, setRoleInputValue] = useState('');
 
     useEffect(() => {
         fetchMembers();
@@ -73,7 +74,6 @@ export default function EditMembers({ userId }: EditMembersProps) {
     };
 
     const fetchPictures = async () => {
-        console.log("Fetching pictures...");
         setIsPicturesLoading(true);
         try {
             const response = await fetch(`${API_BASE_URL}/pictures`);
@@ -82,7 +82,6 @@ export default function EditMembers({ userId }: EditMembersProps) {
             }
             
             const data = await response.json();
-            console.log("Pictures data received:", data);
             setPictures(data);
         } catch (err) {
             console.error('Error fetching pictures:', err);
@@ -92,7 +91,9 @@ export default function EditMembers({ userId }: EditMembersProps) {
     };
 
     const handleMemberSelect = (member: Member) => {
+        const initialRoleValue = member.role.join(', ');
         setEditedMember(member);
+        setRoleInputValue(initialRoleValue);
         setIsSheetOpen(true);
     };
 
@@ -108,16 +109,41 @@ export default function EditMembers({ userId }: EditMembersProps) {
         });
     };
 
-    const handleRoleChange = (roleStr: string) => {
-        if (!editedMember) return;
-        const roles = roleStr.split(',').map(role => role.trim());
-        setEditedMember(prev => {
-            if (!prev) return prev;
-            return {
-                ...prev,
-                role: roles
-            };
-        });
+    const handleRoleChange = (value: string) => {
+        if (!editedMember) {
+            return;
+        }
+        
+        // Always update the display value
+        setRoleInputValue(value);
+        
+        // Only process roles when we have non-empty content
+        const trimmedValue = value.trim();
+        if (trimmedValue) {
+            const roles = value
+                .split(',')
+                .map(role => role.trim())
+                .filter(role => role.length > 0);
+            
+
+            setEditedMember(prev => {
+                if (!prev) return prev;
+                const updated = {
+                    ...prev,
+                    role: roles
+                };
+                return updated;
+            });
+        } else {
+            // If the input is empty or only spaces, set roles to empty array
+            setEditedMember(prev => {
+                if (!prev) return prev;
+                return {
+                    ...prev,
+                    role: []
+                };
+            });
+        }
     };
 
     const handleSave = async () => {
@@ -370,8 +396,11 @@ export default function EditMembers({ userId }: EditMembersProps) {
                                     <label className="block text-sm font-medium text-zinc-300 mb-2">Roles (comma-separated)</label>
                                     <input
                                         type="text"
-                                        value={editedMember?.role.join(', ')}
-                                        onChange={(e) => handleRoleChange(e.target.value)}
+                                        value={roleInputValue}
+                                        onChange={(e) => {
+                                            handleRoleChange(e.target.value);
+                                        }}
+                                        placeholder="e.g. Software Engineer, Project Manager"
                                         className="w-full p-2 bg-zinc-800/50 text-white border border-zinc-700 rounded-md 
                                                 focus:ring-2 focus:ring-zinc-600 focus:border-transparent"
                                     />
