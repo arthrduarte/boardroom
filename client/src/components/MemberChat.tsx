@@ -131,12 +131,7 @@ export const MemberChat = ({ member, userId, selectedEntry }: MemberChatProps) =
   return (
     <div className="flex flex-col h-full bg-zinc-900 text-white border-0 rounded-lg overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-zinc-800">
-        <div className="flex items-center gap-2">
-          <h3 className="font-medium text-zinc-100">
-            Chat with {member.name}
-          </h3>
-        </div>
+      <div className="flex items-center justify-between p-6">
       </div>
 
       {/* Messages area */}
