@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "scripts": {
     "start": "cd server && npm run start",
-    "heroku-postbuild": "cd server && npm install && npm run build",
+    "heroku-postbuild": "npm run install:deps && npm run build",
+    "install:deps": "cd client && npm install --dev && cd ../server && npm install --dev",
+    "build": "cd client && npm run build && cd ../server && npm run build",
     "start:dev": "concurrently -n \"SERVER,CLIENT\" -c \"bgBlue.bold,bgGreen.bold\" \"npm run start:server\" \"npm run start:client\"",
     "start:server": "cross-env-shell \"cd server && npm run dev\"",
     "start:client": "cross-env-shell \"cd client && npm run dev\"",
@@ -11,7 +13,7 @@
     "install:all": "cross-env-shell \"npm install && cd server && npm install && cd ../client && npm install\""
   },
   "engines": {
-    "node": "16.x"
+    "node": "20.x"
   },
   "devDependencies": {
     "concurrently": "^9.1.2",
