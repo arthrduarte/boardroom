@@ -13,5 +13,12 @@ export type History = {
     member_id: string;
     user_input: string;
     member_output: string;
+    chat: JSON; //JSONB
+    created_at: string;
+}
+
+export type Picture = {
+    id: string;
+    url: string;
     created_at: string;
 }

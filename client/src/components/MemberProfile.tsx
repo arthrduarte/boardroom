@@ -5,11 +5,15 @@ import { Loading } from "./ui/loading";
 import { MemberChat } from './MemberChat';
 import { API_BASE_URL } from "../config";
 
-interface HistoryEntry {
+export interface HistoryEntry {
     id: string;
+    user_id: string;
+    member_id: string;
     user_input: string;
     member_output: string;
     created_at: string;
+    historyParent_id?: string;
+    chat?: { message: string; member_id: string; }[];
 }
 
 interface MemberProfileProps {
@@ -23,7 +27,7 @@ interface MemberProfileProps {
     member: {
         id: string;
         name: string;
-        image?: string;
+        picture: string;
     };
 }
 
@@ -41,11 +45,13 @@ export default function MemberProfile({
     const [selectedEntry, setSelectedEntry] = useState<HistoryEntry | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [isChatOpen, setIsChatOpen] = useState(false);
 
     useEffect(() => {
         if (open && userId && memberId) {
             fetchHistory();
+        }
+        if (!open) {
+            setSelectedEntry(null);
         }
     }, [open, userId, memberId]);
 
@@ -61,6 +67,8 @@ export default function MemberProfile({
             setHistory(data);
             if (data.length > 0) {
                 setSelectedEntry(data[0]);
+            } else {
+                setSelectedEntry(null);
             }
         } catch (err) {
             setError(err instanceof Error ? err.message : 'An error occurred');
@@ -80,8 +88,9 @@ export default function MemberProfile({
 
     return (
         <>
+            {/* Main Profile Dialog */}
             <Dialog open={open} onOpenChange={onOpenChange}>
-                <DialogContent className="min-w-[900px] max-w-[80vw] h-[80vh] flex p-0 gap-0 rounded-lg bg-zinc-900 text-white border border-zinc-800">
+                <DialogContent className="min-w-[1200px] max-w-[90vw] h-[80vh] flex p-0 gap-0 rounded-lg bg-zinc-900 text-white border border-zinc-800">
                     {/* Sidebar - History */}
                     <div className="w-[300px] border-r border-zinc-800 flex flex-col h-full">
                         <DialogHeader className="p-6 border-b border-zinc-800 flex-shrink-0">
@@ -121,15 +130,19 @@ export default function MemberProfile({
                                                     <div 
                                                         key={entry.id}
                                                         onClick={() => setSelectedEntry(entry)}
-                                                        className={`cursor-pointer p-4 rounded-lg transition-colors border
+                                                        className={`group cursor-pointer p-4 rounded-lg transition-colors border
                                                             ${selectedEntry?.id === entry.id 
                                                                 ? 'bg-zinc-800 border-zinc-600' 
                                                                 : 'border-zinc-800 hover:bg-zinc-800/50'}`}
                                                     >
-                                                        <p className="text-sm text-zinc-400">{formatDate(entry.created_at)}</p>
-                                                        <p className="text-sm text-zinc-300 mt-2 line-clamp-2">
-                                                            {entry.user_input}
-                                                        </p>
+                                                        <div className="flex justify-between items-start">
+                                                            <div>
+                                                                <p className="text-sm text-zinc-400">{formatDate(entry.created_at)}</p>
+                                                                <p className="text-sm text-zinc-300 mt-2 line-clamp-2">
+                                                                    {entry.user_input}
+                                                                </p>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 ))}
                                             </div>
@@ -138,19 +151,13 @@ export default function MemberProfile({
                                 </div>
                             </ScrollArea>
                         </div>
-                        <div className="p-4 px-15 border-t border-zinc-800">
-                            <button
-                                onClick={() => setIsChatOpen(true)}
-                                className="flex items-center justify-center bg-zinc-800/50 text-white py-2.5 px-8 rounded-lg border border-zinc-700 
-                                transition-all duration-200 hover:bg-zinc-700 hover:border-zinc-600"
-                            >
-                                Start New Chat
-                            </button>
+                        <div className="p-4 border-t border-zinc-800">
+                            <span className="text-xs text-zinc-500">Select a past discussion to view details.</span>
                         </div>
                     </div>
 
                     {/* Main Content */}
-                    <div className="flex-1 flex flex-col h-full">
+                    <div className="flex-1 flex flex-col h-full border-r border-zinc-800">
                         <div className="border-b border-zinc-800 p-6 flex-shrink-0">
                             <h2 className="text-2xl font-semibold">Discussion Details</h2>
                             {selectedEntry && (
@@ -183,22 +190,26 @@ export default function MemberProfile({
                                             </div>
                                         </div>
                                     ) : (
-                                        <div className="text-center text-zinc-400">
-                                            {isLoading ? <Loading message="Loading discussion..." /> : 'Select a discussion to view details'}
+                                        <div className="text-center text-zinc-400 mt-8 flex items-center justify-center h-full">
+                                            {isLoading ? <Loading message="Loading discussion..." /> : history.length > 0 ? 'Select a discussion to view details' : 'No discussion history available.'}
                                         </div>
                                     )}
                                 </div>
                             </ScrollArea>
                         </div>
                     </div>
+
+                    {/* Chat Section */}
+                    <div className="w-[400px] flex flex-col h-full bg-zinc-900">
+                        <MemberChat
+                            member={member}
+                            userId={userId}
+                            key={memberId}
+                            selectedEntry={selectedEntry}
+                        />
+                    </div>
                 </DialogContent>
             </Dialog>
-
-            <MemberChat
-                member={member}
-                isOpen={isChatOpen}
-                onClose={() => setIsChatOpen(false)}
-            />
         </>
     );
 }
