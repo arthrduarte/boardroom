@@ -229,7 +229,7 @@ const createHistoryUsingHistory = async (req: Request, res: Response) => {
             res.status(400).json({ error: 'Missing parameters' });
         }
 
-        const dataHistory: HistorySchema = await getDataOfEspecficHistory(historyId);
+        const dataHistory: HistorySchema = await getDataOfSpecificHistory(historyId);
 
         if (!dataHistory) {
             res.status(404).json({ error: 'History not found' });
@@ -349,7 +349,7 @@ const fetchUsingClientOpenai = async (input: string) => {
 }
 
 // helper to get data of a specific history
-const getDataOfEspecficHistory = async (historyId: string) => {
+const getDataOfSpecificHistory = async (historyId: string) => {
     const { data, error } = await supabaseAdmin.from('history').select('*').eq('id', historyId).single();
 
     if (error || !data) {
