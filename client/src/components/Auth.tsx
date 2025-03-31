@@ -59,7 +59,7 @@ export default function Auth() {
         <div className="w-full max-w-md bg-zinc-800 rounded-lg shadow-md p-8">
           <div className="flex justify-center mb-6">
             <img 
-              src="./src/assets/logo.png" 
+              src="https://i.postimg.cc/9Xpc919z/boardroom.png" 
               alt="Boardroom Logo" 
               className="w-32 h-32 object-contain"
             />
