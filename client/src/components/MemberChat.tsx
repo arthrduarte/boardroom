@@ -1,6 +1,15 @@
 import { useState, useEffect, useRef } from 'react'
 import { cn } from "@/lib/utils"
-import { ArrowUp } from "lucide-react"
+import { ArrowUp, ChevronDown } from "lucide-react"
+import { API_BASE_URL } from "@/config"
+import { toast } from "sonner"
+import { Loading } from "./ui/loading"
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "./ui/dropdown-menu"
 
 interface MemberChatProps {
   member?: {  
@@ -8,6 +17,8 @@ interface MemberChatProps {
     name: string
     avatar?: string
   }
+  userId: string
+  selectedDiscussionId?: string
 }
 
 type Message = {
@@ -16,162 +27,106 @@ type Message = {
   text: string
   timestamp: Date
   isCurrentUser?: boolean
+  historyParent_id?: string
 }
 
-export const MemberChat = ({ member }: MemberChatProps) => {
-  const [messages, setMessages] = useState<Message[]>([])
-  const [isTyping, setIsTyping] = useState(false)
-  const [inputValue, setInputValue] = useState("")
-  const messagesEndRef = useRef<HTMLDivElement>(null)
+type Member = {
+  id: string
+  name: string
+  role: string[]
+  picture: string
+}
 
-  // Auto-scroll to last message
+export const MemberChat = ({ member, userId, selectedDiscussionId }: MemberChatProps) => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [members, setMembers] = useState<Member[]>([]);
+  const [selectedMember, setSelectedMember] = useState<Member | null>(null);
+  const [inputMessage, setInputMessage] = useState("");
+
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }, [messages])
-
-  useEffect(() => {
-    if (messages.length === 0 && member) {
-      setIsTyping(true)
-      setTimeout(() => {
-        setMessages([{
-          id: '1',
-          sender: member.name, 
-          text: `Hi there! I'm ${member.name}. What would you like to discuss?`,
-          timestamp: new Date(),
-          isCurrentUser: false
-        }])
-        setIsTyping(false)
-      }, 1500)
-    }
-  }, [member, messages.length])
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!member || !inputValue.trim()) return;
-
-    const text = inputValue.trim()
-    setInputValue("")
-
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      sender: 'You',
-      text,
-      timestamp: new Date(),
-      isCurrentUser: true
-    }
-    setMessages(prev => [...prev, userMessage])
-    setIsTyping(true)
-
-    setTimeout(() => {
-      const reply: Message = {
-        id: Date.now().toString() + '-reply',
-        sender: member.name,
-        text: generateResponse(text, member.name),
-        timestamp: new Date(),
-        isCurrentUser: false
+    const fetchMembers = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/members/user/${userId}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch members');
+        }
+        const data = await response.json();
+        setMembers(data);
+      } catch (err) {
+        console.error('Error fetching members:', err);
+        toast.error('Failed to fetch members');
       }
-      setMessages(prev => [...prev, reply])
-      setIsTyping(false)
-    }, 1000 + Math.random() * 2000)
+    };
+
+    fetchMembers();
+  }, [userId]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <Loading message="Loading discussion thread..." />
+      </div>
+    )
   }
-
-  const generateResponse = (input: string, memberName: string): string => {
-    const responses: Record<string, string[]> = {
-      "Comor Walsh": [
-        `As a battle-tested CEO, here's my take: ${input} requires bold moves.`,
-        `${input}? That's a common challenge. The solution lies in three steps...`,
-        `*adjusts tie* Let me be frank about ${input}...`
-      ],
-      "Susan Fowler": [
-        `From a cultural perspective, ${input} raises interesting questions.`,
-        `Have you considered the team impact of ${input}?`,
-        `My research suggests a nuanced approach to ${input}.`
-      ],
-      "Gwen Hester": [
-        `Technically speaking, ${input} presents these opportunities...`,
-        `Let me break down the engineering perspective on ${input}.`,
-        `For ${input}, I'd recommend this technical approach first.`
-      ]
-    }
-
-    return responses[memberName]?.[Math.floor(Math.random() * (responses[memberName]?.length || 0))] || 
-           `Interesting point about ${input}. Let me think...`
-  }
-
-  const allMessages = isTyping 
-    ? [...messages, {
-        id: 'typing',
-        sender: member?.name || '',
-        text: '...',
-        timestamp: new Date(),
-        isCurrentUser: false
-      }]
-    : messages
 
   return (
     <div className="flex flex-col h-full bg-zinc-900 text-white border-0 rounded-lg overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-zinc-800">
         <div className="flex items-center gap-2">
-          <h3 className="font-medium text-zinc-100">Chat with {member?.name || ''}</h3>
+          <h3 className="font-medium text-zinc-100">
+            {selectedDiscussionId ? 'Continue Discussion' : 'Start New Discussion'}
+          </h3>
         </div>
       </div>
 
       {/* Messages area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {allMessages.map(msg => (
-          <div 
-            key={msg.id} 
-            className={cn(
-              "flex",
-              msg.isCurrentUser ? "justify-end" : "justify-start"
-            )}
-          >
-            <div className={cn(
-              "max-w-[85%] p-3 rounded-lg",
-              msg.isCurrentUser 
-                ? "bg-indigo-600 text-white rounded-br-none" 
-                : "bg-zinc-800 text-zinc-100 rounded-bl-none"
-            )}>
-              {!msg.isCurrentUser && (
-                <p className="text-xs font-medium text-indigo-400 mb-1">{msg.sender}</p>
-              )}
-              <p className="text-sm">{msg.text}</p>
-              <p className="text-xs mt-1 opacity-60 text-right">
-                {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-              </p>
-            </div>
-          </div>
-        ))}
-        <div ref={messagesEndRef} />
       </div>
 
       {/* Input area */}
       <div className="p-4 border-t border-zinc-800 bg-zinc-900/50">
-        <form 
-          onSubmit={handleSubmit}
-          className="relative"
-        >
-          <input
-            type="text"
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            placeholder="Type a message..."
-            className="w-full p-3 pr-12 bg-zinc-800 border border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent placeholder-zinc-500 text-zinc-100"
-          />
+        <div className="flex items-center gap-2">
+          <div className="flex-1 flex items-center gap-2 bg-zinc-800/50 rounded-lg px-4 py-2 text-sm">
+            <span className="text-zinc-400">What do you think about this</span>
+            <DropdownMenu>
+              <DropdownMenuTrigger className="inline-flex items-center justify-center size-8 rounded-full hover:bg-zinc-700/50 transition-colors overflow-hidden border border-zinc-700">
+                {selectedMember ? (
+                  <img 
+                    src={selectedMember.picture} 
+                    alt={selectedMember.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <ChevronDown className="h-4 w-4 text-zinc-400" />
+                )}
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="bg-zinc-800 border-zinc-700">
+                {members.map((m) => (
+                  <DropdownMenuItem
+                    key={m.id}
+                    onClick={() => setSelectedMember(m)}
+                    className="flex items-center gap-2 text-zinc-100 hover:bg-zinc-700 cursor-pointer"
+                  >
+                    <img 
+                      src={m.picture} 
+                      alt={m.name}
+                      className="size-8 rounded-full object-cover border border-zinc-700"
+                    />
+                    <span>{m.name}</span>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <span className="text-zinc-400">?</span>
+          </div>
           <button
-            type="submit"
-            disabled={!inputValue.trim()}
-            className={cn(
-              "absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full transition-colors",
-              inputValue.trim() 
-                ? "bg-indigo-600 text-white hover:bg-indigo-700" 
-                : "bg-zinc-700 text-zinc-500 cursor-not-allowed"
-            )}
+            className="p-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={!selectedMember}
           >
-            <ArrowUp className="w-4 h-4" />
+            <ArrowUp className="h-5 w-5" />
           </button>
-        </form>
+        </div>
       </div>
     </div>
   )
