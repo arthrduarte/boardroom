@@ -30,15 +30,6 @@ export function Sidebar() {
               <span className="font-medium">Edit Members</span>
             </Link>
           </div>
-          {/* Sidebar Footer */}
-          <div className=""> 
-            <Link 
-              to="/settings" 
-              className="flex items-center px-4 py-3 text-zinc-300 hover:bg-zinc-700/50 rounded-lg transition-colors group"
-            >
-              <span className="font-medium">Settings</span>
-            </Link>
-          </div>
         </div>
       </div>
 
