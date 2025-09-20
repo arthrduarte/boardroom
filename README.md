@@ -8,12 +8,7 @@
 # Boardroom
 
 <em>An AI-powered boardroom simulation platform for business discussions and decision-making</em>
-
-<!-- BADGES -->
-<img src="https://img.shields.io/github/license/ProgramadoresSemPatria/boardroom-team-07?style=default&logo=opensourceinitiative&logoColor=white&color=0080ff" alt="license">
-<img src="https://img.shields.io/github/last-commit/ProgramadoresSemPatria/boardroom-team-07?style=default&logo=git&logoColor=white&color=0080ff" alt="last-commit">
-<img src="https://img.shields.io/github/languages/top/ProgramadoresSemPatria/boardroom-team-07?style=default&color=0080ff" alt="repo-top-language">
-<img src="https://img.shields.io/github/languages/count/ProgramadoresSemPatria/boardroom-team-07?style=default&color=0080ff" alt="repo-language-count">
+<em>This project won a hackathon against 10 other incredible teams. [See More](https://www.linkedin.com/posts/arthrduarte_my-team-just-placed-1st-in-a-hackathon-activity-7318296533852950529-qsTA/)
 
 <br><br>
 <em>Technology Stack</em>
