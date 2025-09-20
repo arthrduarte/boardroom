@@ -8,6 +8,7 @@
 # Boardroom
 
 <em>An AI-powered boardroom simulation platform for business discussions and decision-making</em>
+<br>
 <em>This project won a hackathon against 10 other incredible teams. [See More](https://www.linkedin.com/posts/arthrduarte_my-team-just-placed-1st-in-a-hackathon-activity-7318296533852950529-qsTA/)
 
 <br><br>
